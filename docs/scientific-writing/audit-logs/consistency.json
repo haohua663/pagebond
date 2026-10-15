@@ -1,0 +1,57 @@
+{
+  "issues": [
+    {
+      "code": "INVALID_FACT_VALUE",
+      "item_id": "N001",
+      "severity": "error"
+    },
+    {
+      "code": "INVALID_RESULT_SAMPLE_SIZE",
+      "item_id": "R001",
+      "severity": "error"
+    },
+    {
+      "code": "MISSING_FACT_FIELD",
+      "item_id": "N001",
+      "location": "analysis_set",
+      "severity": "error"
+    },
+    {
+      "code": "MISSING_FACT_FIELD",
+      "item_id": "N001",
+      "location": "concept",
+      "severity": "error"
+    },
+    {
+      "code": "MISSING_FACT_FIELD",
+      "item_id": "N001",
+      "location": "section",
+      "severity": "error"
+    },
+    {
+      "code": "MISSING_FACT_FIELD",
+      "item_id": "N001",
+      "location": "unit",
+      "severity": "error"
+    },
+    {
+      "code": "MISSING_METHOD_NAME",
+      "item_id": "M001",
+      "severity": "error"
+    },
+    {
+      "code": "RESULT_WITHOUT_REPORTED_SECTION",
+      "item_id": "R001",
+      "severity": "error"
+    }
+  ],
+  "status": "fail",
+  "summary": {
+    "errors": 8,
+    "methods": 1,
+    "numeric_facts": 1,
+    "results": 1,
+    "warnings": 0
+  },
+  "tool": "check_consistency"
+}

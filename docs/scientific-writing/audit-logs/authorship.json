@@ -1,0 +1,151 @@
+{
+  "issues": [
+    {
+      "code": "AI_OUTPUT_NOT_HUMAN_VERIFIED",
+      "location": "ai_use",
+      "severity": "error"
+    },
+    {
+      "code": "AUTHORSHIP_CRITERION_NOT_MET",
+      "item_id": "A001",
+      "location": "accountable_for_work",
+      "severity": "error"
+    },
+    {
+      "code": "AUTHORSHIP_CRITERION_NOT_MET",
+      "item_id": "A001",
+      "location": "drafted_or_critically_revised",
+      "severity": "error"
+    },
+    {
+      "code": "AUTHORSHIP_CRITERION_NOT_MET",
+      "item_id": "A001",
+      "location": "final_approval",
+      "severity": "error"
+    },
+    {
+      "code": "AUTHORSHIP_CRITERION_NOT_MET",
+      "item_id": "A001",
+      "location": "substantial_contribution",
+      "severity": "error"
+    },
+    {
+      "code": "DECLARATION_NOT_VERIFIED",
+      "item_id": "ai_use",
+      "severity": "error"
+    },
+    {
+      "code": "DECLARATION_NOT_VERIFIED",
+      "item_id": "author_contributions",
+      "severity": "error"
+    },
+    {
+      "code": "DECLARATION_NOT_VERIFIED",
+      "item_id": "conflicts",
+      "severity": "error"
+    },
+    {
+      "code": "DECLARATION_NOT_VERIFIED",
+      "item_id": "funding",
+      "severity": "error"
+    },
+    {
+      "code": "DECLARATION_VERIFIER_MISSING",
+      "item_id": "ai_use",
+      "severity": "error"
+    },
+    {
+      "code": "DECLARATION_VERIFIER_MISSING",
+      "item_id": "author_contributions",
+      "severity": "error"
+    },
+    {
+      "code": "DECLARATION_VERIFIER_MISSING",
+      "item_id": "conflicts",
+      "severity": "error"
+    },
+    {
+      "code": "DECLARATION_VERIFIER_MISSING",
+      "item_id": "funding",
+      "severity": "error"
+    },
+    {
+      "code": "FINAL_APPROVAL_INCOMPLETE",
+      "location": "accountability",
+      "severity": "error"
+    },
+    {
+      "code": "INVALID_CORRESPONDING_AUTHOR",
+      "severity": "error"
+    },
+    {
+      "code": "INVALID_DECLARATION_DATE",
+      "item_id": "ai_use",
+      "severity": "error"
+    },
+    {
+      "code": "INVALID_DECLARATION_DATE",
+      "item_id": "author_contributions",
+      "severity": "error"
+    },
+    {
+      "code": "INVALID_DECLARATION_DATE",
+      "item_id": "conflicts",
+      "severity": "error"
+    },
+    {
+      "code": "INVALID_DECLARATION_DATE",
+      "item_id": "funding",
+      "severity": "error"
+    },
+    {
+      "code": "INVALID_DECLARATION_HASH",
+      "item_id": "ai_use",
+      "severity": "error"
+    },
+    {
+      "code": "INVALID_DECLARATION_HASH",
+      "item_id": "author_contributions",
+      "severity": "error"
+    },
+    {
+      "code": "INVALID_DECLARATION_HASH",
+      "item_id": "conflicts",
+      "severity": "error"
+    },
+    {
+      "code": "INVALID_DECLARATION_HASH",
+      "item_id": "funding",
+      "severity": "error"
+    },
+    {
+      "code": "JOURNAL_AI_POLICY_NOT_CHECKED",
+      "location": "ai_use",
+      "severity": "error"
+    },
+    {
+      "code": "MISSING_AUTHOR_NAME",
+      "item_id": "A001",
+      "severity": "error"
+    },
+    {
+      "code": "NO_ACCOUNTABILITY_GUARANTOR",
+      "location": "accountability",
+      "severity": "error"
+    },
+    {
+      "code": "NO_CREDIT_ROLE",
+      "item_id": "A001",
+      "severity": "error"
+    }
+  ],
+  "status": "fail",
+  "summary": {
+    "ai_tools": 0,
+    "authors": 1,
+    "credit_taxonomy": "ANSI/NISO Z39.104-2022",
+    "errors": 27,
+    "warnings": 0
+  },
+  "tool": "validate_authorship"
+}

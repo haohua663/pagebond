@@ -1,0 +1,19 @@
+{
+  "issues": [
+    {
+      "code": "NO_PRIMARY_LOCAL_MATCH",
+      "item_id": "unresolved-design",
+      "severity": "warning"
+    }
+  ],
+  "status": "pass",
+  "summary": {
+    "disclaimer": "Selection and coverage are non-scoring aids. They do not reproduce an official checklist, appraise study quality, certify compliance, or replace the current guideline and target-journal instructions.",
+    "errors": 0,
+    "extensions": [],
+    "primary": [],
+    "study_design": "unresolved-design",
+    "warnings": 1
+  },
+  "tool": "select_reporting_guidelines"
+}

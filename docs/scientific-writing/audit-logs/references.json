@@ -1,0 +1,35 @@
+{
+  "issues": [
+    {
+      "code": "MISSING_SOURCE_LOCATOR",
+      "item_id": "E001",
+      "location": "sources[0]",
+      "severity": "error"
+    },
+    {
+      "code": "MISSING_VERIFIED_VALUE",
+      "item_id": "title",
+      "location": "sources[0]",
+      "severity": "error"
+    },
+    {
+      "code": "NO_IDENTIFIER_TO_CHECK",
+      "item_id": "E001",
+      "severity": "warning"
+    },
+    {
+      "code": "NO_SOURCE_IDENTIFIER",
+      "item_id": "E001",
+      "location": "sources[0]",
+      "severity": "warning"
+    }
+  ],
+  "status": "fail",
+  "summary": {
+    "errors": 2,
+    "network_used": false,
+    "sources_checked": 1,
+    "warnings": 2
+  },
+  "tool": "check_references"
+}

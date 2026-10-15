@@ -1,0 +1,15 @@
+{
+  "issues": [
+    {
+      "code": "INVALID_INPUT",
+      "location": "InputError",
+      "severity": "error"
+    }
+  ],
+  "status": "fail",
+  "summary": {
+    "errors": 1,
+    "warnings": 0
+  },
+  "tool": "audit_claims"
+}

@@ -1,0 +1,20 @@
+{
+  "issues": [],
+  "status": "pass",
+  "summary": {
+    "errors": 0,
+    "files_created": [
+      "authorship.json",
+      "claims.csv",
+      "consistency_manifest.json",
+      "manuscript.md",
+      "manuscript_manifest.json",
+      "reporting_coverage.json",
+      "source_manifest.json"
+    ],
+    "overwrites": false,
+    "submission_ready": false,
+    "warnings": 0
+  },
+  "tool": "scaffold_manuscript"
+}

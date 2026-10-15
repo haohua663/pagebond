@@ -1,0 +1,87 @@
+{
+  "issues": [
+    {
+      "code": "CONFIDENTIALITY_REVIEW_INCOMPLETE",
+      "location": "manifest",
+      "severity": "error"
+    },
+    {
+      "code": "POLICY_REVIEW_INCOMPLETE",
+      "location": "manifest",
+      "severity": "error"
+    },
+    {
+      "code": "UNRESOLVED_PLACEHOLDER",
+      "location": "line:10",
+      "severity": "error"
+    },
+    {
+      "code": "UNRESOLVED_PLACEHOLDER",
+      "location": "line:15",
+      "severity": "error"
+    },
+    {
+      "code": "UNRESOLVED_PLACEHOLDER",
+      "location": "line:20",
+      "severity": "error"
+    },
+    {
+      "code": "UNRESOLVED_PLACEHOLDER",
+      "location": "line:25",
+      "severity": "error"
+    },
+    {
+      "code": "UNRESOLVED_PLACEHOLDER",
+      "location": "line:31",
+      "severity": "error"
+    },
+    {
+      "code": "UNRESOLVED_PLACEHOLDER",
+      "location": "line:36",
+      "severity": "error"
+    },
+    {
+      "code": "UNRESOLVED_PLACEHOLDER",
+      "location": "line:41",
+      "severity": "error"
+    },
+    {
+      "code": "UNRESOLVED_PLACEHOLDER",
+      "location": "line:45",
+      "severity": "error"
+    },
+    {
+      "code": "UNRESOLVED_PLACEHOLDER",
+      "location": "line:49",
+      "severity": "error"
+    },
+    {
+      "code": "UNRESOLVED_PLACEHOLDER",
+      "location": "line:54",
+      "severity": "error"
+    },
+    {
+      "code": "UNRESOLVED_PLACEHOLDER",
+      "location": "line:59",
+      "severity": "error"
+    },
+    {
+      "code": "UNRESOLVED_PLACEHOLDER",
+      "location": "line:6",
+      "severity": "error"
+    },
+    {
+      "code": "UNRESOLVED_PLACEHOLDER",
+      "location": "line:64",
+      "severity": "error"
+    }
+  ],
+  "status": "fail",
+  "summary": {
+    "errors": 15,
+    "lines_checked": 65,
+    "raw_text_echoed": false,
+    "warnings": 0
+  },
+  "tool": "lint_manuscript"
+}

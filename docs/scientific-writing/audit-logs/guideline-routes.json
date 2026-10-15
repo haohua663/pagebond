@@ -1,0 +1,918 @@
+{
+  "as_of": "2026-10-01",
+  "disclaimer": "Selection is a non-scoring routing aid. Hao must confirm actual design and open the official guideline.",
+  "routes": [
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [],
+      "primary": [
+        "arrive-2.0-2020"
+      ],
+      "query": "animal_in_vivo",
+      "study_design": "animal_in_vivo",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--ai"
+      ],
+      "primary": [
+        "arrive-2.0-2020"
+      ],
+      "query": "animal_in_vivo+ai",
+      "study_design": "animal_in_vivo",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--ai",
+        "--llm"
+      ],
+      "primary": [
+        "arrive-2.0-2020"
+      ],
+      "query": "animal_in_vivo+ai+llm",
+      "study_design": "animal_in_vivo",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--qualitative-component"
+      ],
+      "primary": [
+        "arrive-2.0-2020"
+      ],
+      "query": "animal_in_vivo+qualitative",
+      "study_design": "animal_in_vivo",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [],
+      "primary": [
+        "strobe-2007"
+      ],
+      "query": "case_control",
+      "study_design": "case_control",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--ai"
+      ],
+      "primary": [
+        "strobe-2007"
+      ],
+      "query": "case_control+ai",
+      "study_design": "case_control",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--ai",
+        "--llm"
+      ],
+      "primary": [
+        "strobe-2007"
+      ],
+      "query": "case_control+ai+llm",
+      "study_design": "case_control",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--qualitative-component"
+      ],
+      "primary": [
+        "strobe-2007"
+      ],
+      "query": "case_control+qualitative",
+      "study_design": "case_control",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [],
+      "primary": [
+        "care-2013"
+      ],
+      "query": "case_report",
+      "study_design": "case_report",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--ai"
+      ],
+      "primary": [
+        "care-2013"
+      ],
+      "query": "case_report+ai",
+      "study_design": "case_report",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--ai",
+        "--llm"
+      ],
+      "primary": [
+        "care-2013"
+      ],
+      "query": "case_report+ai+llm",
+      "study_design": "case_report",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--qualitative-component"
+      ],
+      "primary": [
+        "care-2013"
+      ],
+      "query": "case_report+qualitative",
+      "study_design": "case_report",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [],
+      "primary": [
+        "strobe-2007"
+      ],
+      "query": "cohort",
+      "study_design": "cohort",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--ai"
+      ],
+      "primary": [
+        "strobe-2007"
+      ],
+      "query": "cohort+ai",
+      "study_design": "cohort",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--ai",
+        "--llm"
+      ],
+      "primary": [
+        "strobe-2007"
+      ],
+      "query": "cohort+ai+llm",
+      "study_design": "cohort",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--qualitative-component"
+      ],
+      "primary": [
+        "strobe-2007"
+      ],
+      "query": "cohort+qualitative",
+      "study_design": "cohort",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [],
+      "primary": [
+        "strobe-2007"
+      ],
+      "query": "cross_sectional",
+      "study_design": "cross_sectional",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--ai"
+      ],
+      "primary": [
+        "strobe-2007"
+      ],
+      "query": "cross_sectional+ai",
+      "study_design": "cross_sectional",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--ai",
+        "--llm"
+      ],
+      "primary": [
+        "strobe-2007"
+      ],
+      "query": "cross_sectional+ai+llm",
+      "study_design": "cross_sectional",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--qualitative-component"
+      ],
+      "primary": [
+        "strobe-2007"
+      ],
+      "query": "cross_sectional+qualitative",
+      "study_design": "cross_sectional",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [],
+      "primary": [
+        "stard-2015"
+      ],
+      "query": "diagnostic_accuracy",
+      "study_design": "diagnostic_accuracy",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [
+        "stard-ai-2025"
+      ],
+      "flags": [
+        "--ai"
+      ],
+      "primary": [
+        "stard-2015"
+      ],
+      "query": "diagnostic_accuracy+ai",
+      "study_design": "diagnostic_accuracy",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [
+        "stard-ai-2025"
+      ],
+      "flags": [
+        "--ai",
+        "--llm"
+      ],
+      "primary": [
+        "stard-2015"
+      ],
+      "query": "diagnostic_accuracy+ai+llm",
+      "study_design": "diagnostic_accuracy",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--qualitative-component"
+      ],
+      "primary": [
+        "stard-2015"
+      ],
+      "query": "diagnostic_accuracy+qualitative",
+      "study_design": "diagnostic_accuracy",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [],
+      "primary": [
+        "tripod-ai-2024"
+      ],
+      "query": "diagnostic_prediction_model",
+      "study_design": "diagnostic_prediction_model",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--ai"
+      ],
+      "primary": [
+        "tripod-ai-2024"
+      ],
+      "query": "diagnostic_prediction_model+ai",
+      "study_design": "diagnostic_prediction_model",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [
+        "tripod-llm-2025"
+      ],
+      "flags": [
+        "--ai",
+        "--llm"
+      ],
+      "primary": [
+        "tripod-ai-2024"
+      ],
+      "query": "diagnostic_prediction_model+ai+llm",
+      "study_design": "diagnostic_prediction_model",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--qualitative-component"
+      ],
+      "primary": [
+        "tripod-ai-2024"
+      ],
+      "query": "diagnostic_prediction_model+qualitative",
+      "study_design": "diagnostic_prediction_model",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [],
+      "primary": [
+        "cheers-2022"
+      ],
+      "query": "health_economic_evaluation",
+      "study_design": "health_economic_evaluation",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--ai"
+      ],
+      "primary": [
+        "cheers-2022"
+      ],
+      "query": "health_economic_evaluation+ai",
+      "study_design": "health_economic_evaluation",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--ai",
+        "--llm"
+      ],
+      "primary": [
+        "cheers-2022"
+      ],
+      "query": "health_economic_evaluation+ai+llm",
+      "study_design": "health_economic_evaluation",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--qualitative-component"
+      ],
+      "primary": [
+        "cheers-2022"
+      ],
+      "query": "health_economic_evaluation+qualitative",
+      "study_design": "health_economic_evaluation",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [],
+      "primary": [
+        "prisma-2020"
+      ],
+      "query": "meta_analysis",
+      "study_design": "meta_analysis",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--ai"
+      ],
+      "primary": [
+        "prisma-2020"
+      ],
+      "query": "meta_analysis+ai",
+      "study_design": "meta_analysis",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--ai",
+        "--llm"
+      ],
+      "primary": [
+        "prisma-2020"
+      ],
+      "query": "meta_analysis+ai+llm",
+      "study_design": "meta_analysis",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--qualitative-component"
+      ],
+      "primary": [
+        "prisma-2020"
+      ],
+      "query": "meta_analysis+qualitative",
+      "study_design": "meta_analysis",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [],
+      "primary": [
+        "strobe-2007"
+      ],
+      "query": "observational",
+      "study_design": "observational",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--ai"
+      ],
+      "primary": [
+        "strobe-2007"
+      ],
+      "query": "observational+ai",
+      "study_design": "observational",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--ai",
+        "--llm"
+      ],
+      "primary": [
+        "strobe-2007"
+      ],
+      "query": "observational+ai+llm",
+      "study_design": "observational",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--qualitative-component"
+      ],
+      "primary": [
+        "strobe-2007"
+      ],
+      "query": "observational+qualitative",
+      "study_design": "observational",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [],
+      "primary": [
+        "consort-2025"
+      ],
+      "query": "pilot_randomized_trial",
+      "study_design": "pilot_randomized_trial",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--protocol"
+      ],
+      "primary": [
+        "spirit-2025"
+      ],
+      "query": "pilot_randomized_trial+protocol",
+      "study_design": "pilot_randomized_trial",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [
+        "consort-ai-2020"
+      ],
+      "flags": [
+        "--ai"
+      ],
+      "primary": [
+        "consort-2025"
+      ],
+      "query": "pilot_randomized_trial+ai",
+      "study_design": "pilot_randomized_trial",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [
+        "consort-ai-2020"
+      ],
+      "flags": [
+        "--ai",
+        "--llm"
+      ],
+      "primary": [
+        "consort-2025"
+      ],
+      "query": "pilot_randomized_trial+ai+llm",
+      "study_design": "pilot_randomized_trial",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--qualitative-component"
+      ],
+      "primary": [
+        "consort-2025"
+      ],
+      "query": "pilot_randomized_trial+qualitative",
+      "study_design": "pilot_randomized_trial",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [],
+      "primary": [
+        "tripod-ai-2024"
+      ],
+      "query": "prediction_model",
+      "study_design": "prediction_model",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--ai"
+      ],
+      "primary": [
+        "tripod-ai-2024"
+      ],
+      "query": "prediction_model+ai",
+      "study_design": "prediction_model",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [
+        "tripod-llm-2025"
+      ],
+      "flags": [
+        "--ai",
+        "--llm"
+      ],
+      "primary": [
+        "tripod-ai-2024"
+      ],
+      "query": "prediction_model+ai+llm",
+      "study_design": "prediction_model",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--qualitative-component"
+      ],
+      "primary": [
+        "tripod-ai-2024"
+      ],
+      "query": "prediction_model+qualitative",
+      "study_design": "prediction_model",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [],
+      "primary": [
+        "tripod-ai-2024"
+      ],
+      "query": "prognostic_prediction_model",
+      "study_design": "prognostic_prediction_model",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--ai"
+      ],
+      "primary": [
+        "tripod-ai-2024"
+      ],
+      "query": "prognostic_prediction_model+ai",
+      "study_design": "prognostic_prediction_model",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [
+        "tripod-llm-2025"
+      ],
+      "flags": [
+        "--ai",
+        "--llm"
+      ],
+      "primary": [
+        "tripod-ai-2024"
+      ],
+      "query": "prognostic_prediction_model+ai+llm",
+      "study_design": "prognostic_prediction_model",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--qualitative-component"
+      ],
+      "primary": [
+        "tripod-ai-2024"
+      ],
+      "query": "prognostic_prediction_model+qualitative",
+      "study_design": "prognostic_prediction_model",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [],
+      "primary": [
+        "srqr-2014"
+      ],
+      "query": "qualitative",
+      "study_design": "qualitative",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--ai"
+      ],
+      "primary": [
+        "srqr-2014"
+      ],
+      "query": "qualitative+ai",
+      "study_design": "qualitative",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--ai",
+        "--llm"
+      ],
+      "primary": [
+        "srqr-2014"
+      ],
+      "query": "qualitative+ai+llm",
+      "study_design": "qualitative",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--qualitative-component"
+      ],
+      "primary": [
+        "srqr-2014"
+      ],
+      "query": "qualitative+qualitative",
+      "study_design": "qualitative",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [],
+      "primary": [
+        "squire-2.0-2015"
+      ],
+      "query": "quality_improvement",
+      "study_design": "quality_improvement",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--ai"
+      ],
+      "primary": [
+        "squire-2.0-2015"
+      ],
+      "query": "quality_improvement+ai",
+      "study_design": "quality_improvement",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--ai",
+        "--llm"
+      ],
+      "primary": [
+        "squire-2.0-2015"
+      ],
+      "query": "quality_improvement+ai+llm",
+      "study_design": "quality_improvement",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--qualitative-component"
+      ],
+      "primary": [
+        "squire-2.0-2015"
+      ],
+      "query": "quality_improvement+qualitative",
+      "study_design": "quality_improvement",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [],
+      "primary": [
+        "consort-2025"
+      ],
+      "query": "randomized_trial",
+      "study_design": "randomized_trial",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--protocol"
+      ],
+      "primary": [
+        "spirit-2025"
+      ],
+      "query": "randomized_trial+protocol",
+      "study_design": "randomized_trial",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [
+        "consort-ai-2020"
+      ],
+      "flags": [
+        "--ai"
+      ],
+      "primary": [
+        "consort-2025"
+      ],
+      "query": "randomized_trial+ai",
+      "study_design": "randomized_trial",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [
+        "consort-ai-2020"
+      ],
+      "flags": [
+        "--ai",
+        "--llm"
+      ],
+      "primary": [
+        "consort-2025"
+      ],
+      "query": "randomized_trial+ai+llm",
+      "study_design": "randomized_trial",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--qualitative-component"
+      ],
+      "primary": [
+        "consort-2025"
+      ],
+      "query": "randomized_trial+qualitative",
+      "study_design": "randomized_trial",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [],
+      "primary": [
+        "prisma-2020"
+      ],
+      "query": "systematic_review",
+      "study_design": "systematic_review",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--ai"
+      ],
+      "primary": [
+        "prisma-2020"
+      ],
+      "query": "systematic_review+ai",
+      "study_design": "systematic_review",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--ai",
+        "--llm"
+      ],
+      "primary": [
+        "prisma-2020"
+      ],
+      "query": "systematic_review+ai+llm",
+      "study_design": "systematic_review",
+      "warning_codes": []
+    },
+    {
+      "exit": 0,
+      "extensions": [],
+      "flags": [
+        "--qualitative-component"
+      ],
+      "primary": [
+        "prisma-2020"
+      ],
+      "query": "systematic_review+qualitative",
+      "study_design": "systematic_review",
+      "warning_codes": []
+    }
+  ],
+  "unresolved_design": "unresolved-design"
+}

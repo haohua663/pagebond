@@ -1,0 +1,36 @@
+{
+  "issues": [
+    {
+      "code": "MISSING_SOURCE_LOCATOR",
+      "item_id": "E001",
+      "location": "sources[0]",
+      "severity": "error"
+    },
+    {
+      "code": "MISSING_VERIFIED_VALUE",
+      "item_id": "title",
+      "location": "sources[0]",
+      "severity": "error"
+    },
+    {
+      "code": "SOURCE_NOT_VERIFIED",
+      "item_id": "E001",
+      "location": "sources[0]",
+      "severity": "error"
+    },
+    {
+      "code": "NO_SOURCE_IDENTIFIER",
+      "item_id": "E001",
+      "location": "sources[0]",
+      "severity": "warning"
+    }
+  ],
+  "status": "fail",
+  "summary": {
+    "errors": 3,
+    "kind": "source",
+    "records": 1,
+    "warnings": 1
+  },
+  "tool": "validate_manifest"
+}

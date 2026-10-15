@@ -4,7 +4,7 @@ export const LIMITS = {
   /** Target cap from the plan. Exceeding it stops model work instead of truncating. */
   targetChars: 40_000,
   /** Largest document the automated pipeline test keeps intact. */
-  verifiedChars: 8_000,
+  verifiedChars: 40_000,
   /** Source chars per rewrite chunk so a reply can cover every paragraph. */
   chunkSourceChars: 1_200,
   archiveReminderCount: 30,

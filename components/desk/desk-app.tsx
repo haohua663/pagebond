@@ -722,7 +722,7 @@ export function DeskApp() {
   const verifiedNote =
     revise.confirmed && documentChars(revise.confirmed.blocks) > LIMITS.verifiedChars
       ? `这篇大约 ${documentChars(revise.confirmed.blocks)} 字，超过已验证的 ${LIMITS.verifiedChars} 字。可以分块处理，但不标成长文已支持。`
-      : `已验证篇幅约 ${LIMITS.verifiedChars} 字。4 万字是目标上限，尚未用真实长文通过验证。`;
+      : `已用自动长文测试验证到 ${LIMITS.verifiedChars} 字。超过这个长度会停住，不截断。`;
   const analysisStale =
     revise.analysisCurrent && contentVersion(currentBlocks) !== revise.analysisCurrent.version
       ? "当前稿已变化，旧分析不再当作当前结论。"

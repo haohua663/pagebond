@@ -737,22 +737,32 @@ export function DeskApp() {
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:z-10 focus:bg-paper focus:p-3">
         跳到正文
       </a>
-      <header className="sticky top-0 z-20 flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-line bg-desk/95 px-4 py-3 text-sm">
-        <p className="text-lg">页缘</p>
-        <p>阶段：{mode === "archive" || viewing ? "查看存档" : revise.running || conceive.running ? "处理中" : revise.confirmed ? "已确认输入" : "等待文稿"}</p>
-        <p>已完成标题标记 {doneChapters}</p>
-        <p>待复核 {needsReview}</p>
-        <p>保存：{mode === "conceive" ? conceive.saveState : revise.saveState}</p>
-        <button
-          type="button"
-          className="min-h-11 cursor-pointer px-2 underline"
-          onClick={() => {
-            cancelRevise.current = true;
-            generation.current += 1;
-          }}
-        >
-          停止
-        </button>
+      <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-line bg-desk/95 px-4 py-3">
+        <span className="grid size-9 place-items-center rounded-lg bg-lime text-sm font-medium text-ink" aria-hidden="true">
+          页
+        </span>
+        <p className="text-lg font-medium tracking-tight">页缘</p>
+        {revise.confirmed || conceive.brief || revise.running || conceive.running ? (
+          <p className="hidden text-sm text-ink-soft sm:block">
+            {revise.running || conceive.running ? "处理中" : mode === "archive" || viewing ? "查看存档" : "已确认输入"}
+            {revise.confirmed ? ` · 已完成标题 ${doneChapters} · 待复核 ${needsReview}` : ""}
+            {` · 保存：${mode === "conceive" ? conceive.saveState : revise.saveState}`}
+          </p>
+        ) : (
+          <p className="hidden text-sm text-ink-soft sm:block">先看界面。密钥等开发完成后再填。</p>
+        )}
+        {revise.running || conceive.running ? (
+          <button
+            type="button"
+            className="min-h-11 cursor-pointer px-2 underline"
+            onClick={() => {
+              cancelRevise.current = true;
+              generation.current += 1;
+            }}
+          >
+            停止
+          </button>
+        ) : null}
         <button type="button" className="min-h-11 cursor-pointer px-2 underline lg:hidden" onClick={() => setSuggestionsOpen((value) => !value)}>
           {suggestionsOpen ? "收起建议" : "建议"}
         </button>
@@ -764,23 +774,24 @@ export function DeskApp() {
         <nav aria-label="模式" className="flex gap-2 lg:flex-col">
           {(
             [
-              ["revise", "改稿"],
-              ["conceive", "起稿"],
-              ["archive", "存档"],
+              ["revise", "改稿", revise.confirmed ? "1" : ""],
+              ["conceive", "起稿", conceive.brief ? "1" : ""],
+              ["archive", "存档", String(records.length)],
             ] as const
-          ).map(([id, label]) => (
+          ).map(([id, label, count]) => (
             <button
               key={id}
               type="button"
               data-testid={`mode-${id}`}
               aria-pressed={mode === id}
-              className={`min-h-11 cursor-pointer border-l-4 px-3 text-left ${mode === id ? "border-lime bg-paper" : "border-transparent"}`}
+              className={`flex min-h-11 cursor-pointer items-center justify-between border-l-4 px-3 text-left ${mode === id ? "border-lime bg-paper" : "border-transparent"}`}
               onClick={() => {
                 setMode(id);
                 setOpened(null);
               }}
             >
-              {label}
+              <span>{label}</span>
+              {count ? <span className="text-sm text-ink-soft">{count}</span> : null}
             </button>
           ))}
           <p className="mt-3 hidden text-sm text-ink-soft lg:block">{keyLabel}</p>
@@ -931,7 +942,9 @@ function SettingsDialog({
         <Dialog.Overlay className="fixed inset-0 bg-ink/20" />
         <Dialog.Content className="fixed top-1/2 left-1/2 w-[min(100%-2rem,32rem)] -translate-x-1/2 -translate-y-1/2 bg-paper p-5">
           <Dialog.Title className="text-xl">设置</Dialog.Title>
-          <Dialog.Description className="mt-2 text-ink-soft">{keyLabel}</Dialog.Description>
+          <Dialog.Description className="mt-2 text-ink-soft">
+            {keyLabel} 界面可以先用。OpenRouter 密钥等开发完成后再填，用来调用大模型。
+          </Dialog.Description>
           <label className="mt-4 block" htmlFor="model-slug">
             模型标识
             <input
@@ -955,7 +968,7 @@ function SettingsDialog({
               onChange={(event) => onSessionKey(event.target.value)}
             />
           </label>
-          <p className="mt-2 text-sm text-ink-soft">只留在这个页面的内存里，不写入浏览器存储，也不进存档。</p>
+          <p className="mt-2 text-sm text-ink-soft">现在可以留空。填了也只留在这个页面的内存里，不写入浏览器存储，也不进存档。</p>
           <Dialog.Close className="mt-4 inline-flex min-h-11 cursor-pointer items-center bg-ink px-4 text-paper">关闭</Dialog.Close>
         </Dialog.Content>
       </Dialog.Portal>

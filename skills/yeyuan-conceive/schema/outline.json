@@ -1,0 +1,28 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["requirements", "missing", "directions", "theme", "sections", "literatureQueries", "requirementsConflict"],
+  "properties": {
+    "requirements": { "type": "array", "items": { "type": "string" } },
+    "missing": { "type": "array", "items": { "type": "string" } },
+    "directions": { "type": "array", "items": { "type": "string" } },
+    "theme": { "type": "string" },
+    "sections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["heading", "purpose", "content", "evidence", "length"],
+        "properties": {
+          "heading": { "type": "string" },
+          "purpose": { "type": "string" },
+          "content": { "type": "string" },
+          "evidence": { "type": "string" },
+          "length": { "type": "string" }
+        }
+      }
+    },
+    "literatureQueries": { "type": "array", "items": { "type": "string" } },
+    "requirementsConflict": { "type": "boolean" }
+  }
+}

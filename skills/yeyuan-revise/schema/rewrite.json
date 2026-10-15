@@ -1,0 +1,20 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["paragraphs"],
+  "properties": {
+    "paragraphs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "text", "reason"],
+        "properties": {
+          "id": { "type": "string" },
+          "text": { "type": "string" },
+          "reason": { "type": "string" }
+        }
+      }
+    }
+  }
+}

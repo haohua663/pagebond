@@ -1,9 +1,9 @@
 "use client";
 
-import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { ArchivePanel } from "@/components/archive/archive-panel";
 import { ManuscriptPane } from "@/components/manuscript/manuscript-pane";
+import { MissingKeyLink, SettingsScreen } from "@/components/settings/api-key-panel";
 import { SuggestionRail } from "@/components/suggestions/suggestion-rail";
 import { Button } from "@/components/ui/button";
 import { IntakeWell } from "@/components/upload/intake-well";
@@ -19,7 +19,7 @@ import { blocksToPlain, parseProse } from "@/lib/document/structure";
 import { documentChars } from "@/lib/document/stats";
 import type { DocumentBlock, IntakeOptions, ParsedDocument } from "@/lib/document/types";
 import { ARTICLE_TYPE_LABEL, emptyOptions } from "@/lib/document/types";
-import { DEFAULT_MODEL, KNOWN_MODEL, LIMITS, PROMPT_VERSION } from "@/lib/limits";
+import { DEFAULT_MODEL, LIMITS, PROMPT_VERSION } from "@/lib/limits";
 import { estimateCost } from "@/lib/providers/openrouter";
 import type { LiteratureQueryResult } from "@/lib/providers/openalex";
 import { SAMPLE_CONCEIVE, SAMPLE_REVISE, SAMPLE_SUGGESTIONS } from "@/lib/sample";
@@ -155,10 +155,12 @@ export function DeskApp() {
   const [opened, setOpened] = useState<PaperRecord | null>(null);
   const [model, setModel] = useState(DEFAULT_MODEL);
   const [sessionKey, setSessionKey] = useState("");
+  const [sessionLabel, setSessionLabel] = useState<string | null>(null);
   const [serverKey, setServerKey] = useState<KeySource>("none");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const generation = useRef(1);
+  const workMode = useRef<Mode>("revise");
   const taskId = useRef("");
   const cancelRevise = useRef(false);
   const reviseRef = useRef(revise);
@@ -180,7 +182,29 @@ export function DeskApp() {
 
   const keySource: KeySource = sessionKey.trim() ? "session" : serverKey;
   const keyLabel =
-    keySource === "session" ? "这次用你填写的会话密钥，不会被服务端密钥覆盖。" : keySource === "server" ? "这次用服务端环境变量 OPENROUTER_API_KEY。" : "没有密钥。模型调用会失败，本地解析和存档仍可用。";
+    keySource === "session"
+      ? "这次用你添加的会话密钥，不会被服务端密钥覆盖。"
+      : keySource === "server"
+        ? "这次用服务端环境变量 OPENROUTER_API_KEY。"
+        : "没有密钥。打开设置添加后才能调用模型。本地解析和存档仍可用。";
+  const idleStatus =
+    keySource === "session"
+      ? "密钥已加入这次会话，可以开始改稿或起稿。"
+      : keySource === "server"
+        ? "服务端密钥可用，可以开始改稿或起稿。"
+        : "到设置添加 OpenRouter 密钥，添加完成后就可以开始。";
+
+  function openSettings() {
+    if (mode === "revise" || mode === "conceive") workMode.current = mode;
+    setOpened(null);
+    setSettingsOpen(true);
+  }
+
+  function startWork() {
+    setSettingsOpen(false);
+    setOpened(null);
+    if (mode === "archive") setMode(workMode.current);
+  }
 
   async function refreshArchive() {
     try {
@@ -728,9 +752,9 @@ export function DeskApp() {
       ? "当前稿已变化，旧分析不再当作当前结论。"
       : null;
 
-  const viewing = opened;
-  const showReviseWork = mode === "revise" && !viewing;
-  const showConceiveWork = mode === "conceive" && !viewing;
+  const viewing = opened && !settingsOpen ? opened : null;
+  const showReviseWork = mode === "revise" && !viewing && !settingsOpen;
+  const showConceiveWork = mode === "conceive" && !viewing && !settingsOpen;
 
   return (
     <div className="min-h-screen bg-desk text-ink">
@@ -742,14 +766,16 @@ export function DeskApp() {
           页
         </span>
         <p className="text-lg font-medium tracking-tight">页缘</p>
-        {revise.confirmed || conceive.brief || revise.running || conceive.running ? (
+        {settingsOpen ? (
+          <p className="hidden text-sm text-ink-soft sm:block">核对通过后，点开始工作。</p>
+        ) : revise.confirmed || conceive.brief || revise.running || conceive.running ? (
           <p className="hidden text-sm text-ink-soft sm:block">
             {revise.running || conceive.running ? "处理中" : mode === "archive" || viewing ? "查看存档" : "已确认输入"}
             {revise.confirmed ? ` · 已完成标题 ${doneChapters} · 待复核 ${needsReview}` : ""}
             {` · 保存：${mode === "conceive" ? conceive.saveState : revise.saveState}`}
           </p>
         ) : (
-          <p className="hidden text-sm text-ink-soft sm:block">先看界面。密钥等开发完成后再填。</p>
+          <p className="hidden text-sm text-ink-soft sm:block">{idleStatus}</p>
         )}
         {revise.running || conceive.running ? (
           <button
@@ -766,8 +792,13 @@ export function DeskApp() {
         <button type="button" className="min-h-11 cursor-pointer px-2 underline lg:hidden" onClick={() => setSuggestionsOpen((value) => !value)}>
           {suggestionsOpen ? "收起建议" : "建议"}
         </button>
-        <button type="button" className="ml-auto min-h-11 cursor-pointer px-2 underline" onClick={() => setSettingsOpen(true)}>
-          设置
+        <button
+          type="button"
+          className="ml-auto min-h-11 cursor-pointer px-2 underline"
+          aria-pressed={settingsOpen}
+          onClick={() => (settingsOpen ? setSettingsOpen(false) : openSettings())}
+        >
+          {settingsOpen ? "返回稿件" : "设置"}
         </button>
       </header>
       <div className="desk-grid">
@@ -788,6 +819,7 @@ export function DeskApp() {
               onClick={() => {
                 setMode(id);
                 setOpened(null);
+                setSettingsOpen(false);
               }}
             >
               <span>{label}</span>
@@ -815,6 +847,27 @@ export function DeskApp() {
           ) : null}
         </nav>
         <main id="main" className="min-w-0">
+          {settingsOpen ? (
+            <SettingsScreen
+              model={model}
+              keySource={keySource}
+              sessionLabel={sessionLabel}
+              onModel={(value) => {
+                setModel(value);
+                window.localStorage.setItem("yeyuan.model", value);
+                generation.current += 1;
+              }}
+              onAdded={(key, label) => {
+                setSessionKey(key);
+                setSessionLabel(label);
+              }}
+              onClearSession={() => {
+                setSessionKey("");
+                setSessionLabel(null);
+              }}
+              onStart={startWork}
+            />
+          ) : null}
           {viewing ? (
             <ArchiveReader record={viewing} onBack={() => setOpened(null)} />
           ) : null}
@@ -846,6 +899,7 @@ export function DeskApp() {
                 cancelRevise.current = true;
                 setRevise((current) => ({ ...freshRevise(), paste: current.paste, options: current.options }));
               }}
+              onOpenSettings={openSettings}
             />
           ) : null}
           {showConceiveWork ? (
@@ -860,9 +914,10 @@ export function DeskApp() {
               onSearch={() => void searchLiterature()}
               onSave={() => void saveConceive()}
               model={model}
+              onOpenSettings={openSettings}
             />
           ) : null}
-          {mode === "archive" && !viewing ? (
+          {mode === "archive" && !viewing && !settingsOpen ? (
             <ArchivePanel
               records={records}
               onOpen={(record) => setOpened(record)}
@@ -897,82 +952,15 @@ export function DeskApp() {
             />
           ) : null}
           {showConceiveWork ? <ConceiveRail state={conceive} /> : null}
-          {mode === "archive" ? (
+          {settingsOpen ? (
+            <aside className="border border-line bg-paper p-4 text-ink-soft">密钥只留在这次会话里。存档和备份都不含密钥。</aside>
+          ) : null}
+          {mode === "archive" && !settingsOpen ? (
             <aside className="border border-line bg-paper p-4 text-ink-soft">只查看存档时不调用模型，页边也不重新生成。</aside>
           ) : null}
         </div>
       </div>
-      <SettingsDialog
-        open={settingsOpen}
-        onOpenChange={setSettingsOpen}
-        model={model}
-        sessionKey={sessionKey}
-        keyLabel={keyLabel}
-        onModel={(value) => {
-          setModel(value);
-          window.localStorage.setItem("yeyuan.model", value);
-          generation.current += 1;
-        }}
-        onSessionKey={setSessionKey}
-      />
     </div>
-  );
-}
-
-function SettingsDialog({
-  open,
-  onOpenChange,
-  model,
-  sessionKey,
-  keyLabel,
-  onModel,
-  onSessionKey,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  model: string;
-  sessionKey: string;
-  keyLabel: string;
-  onModel: (value: string) => void;
-  onSessionKey: (value: string) => void;
-}) {
-  return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-ink/20" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 w-[min(100%-2rem,32rem)] -translate-x-1/2 -translate-y-1/2 bg-paper p-5">
-          <Dialog.Title className="text-xl">设置</Dialog.Title>
-          <Dialog.Description className="mt-2 text-ink-soft">
-            {keyLabel} 界面可以先用。OpenRouter 密钥等开发完成后再填，用来调用大模型。
-          </Dialog.Description>
-          <label className="mt-4 block" htmlFor="model-slug">
-            模型标识
-            <input
-              id="model-slug"
-              className="mt-1 w-full border border-line bg-desk p-2"
-              value={model}
-              onChange={(event) => onModel(event.target.value)}
-            />
-          </label>
-          <p className="mt-2 text-sm text-ink-soft">
-            默认 {DEFAULT_MODEL}，来自 OpenRouter 文档，上下文约 {KNOWN_MODEL.contextLength.toLocaleString()} token。换别的标识后，价格需要另外核对。
-          </p>
-          <label className="mt-4 block" htmlFor="session-key">
-            本次会话密钥
-            <input
-              id="session-key"
-              type="password"
-              autoComplete="off"
-              className="mt-1 w-full border border-line bg-desk p-2"
-              value={sessionKey}
-              onChange={(event) => onSessionKey(event.target.value)}
-            />
-          </label>
-          <p className="mt-2 text-sm text-ink-soft">现在可以留空。填了也只留在这个页面的内存里，不写入浏览器存储，也不进存档。</p>
-          <Dialog.Close className="mt-4 inline-flex min-h-11 cursor-pointer items-center bg-ink px-4 text-paper">关闭</Dialog.Close>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
   );
 }
 
@@ -997,6 +985,7 @@ function ReviseMain({
   scopeKey,
   analysisStale,
   currentBlocks,
+  onOpenSettings,
 }: {
   state: ReviseState;
   setRevise: Dispatch<SetStateAction<ReviseState>>;
@@ -1018,6 +1007,7 @@ function ReviseMain({
   scopeKey: string;
   analysisStale: string | null;
   currentBlocks: DocumentBlock[];
+  onOpenSettings: () => void;
 }) {
   const loaded = state.loaded;
   return (
@@ -1058,9 +1048,12 @@ function ReviseMain({
           <p className="mt-2 text-sm text-ink-soft">{verifiedNote}</p>
           <p className="mt-2 text-sm text-ink">未进行外部查重／AI 检测。</p>
           {state.modelError ? (
-            <p role="alert" data-testid="model-error" className="mt-3 border-l-4 border-ink bg-sunk px-3 py-2">
-              {state.modelError}
-            </p>
+            <div className="mt-3">
+              <p role="alert" data-testid="model-error" className="border-l-4 border-ink bg-sunk px-3 py-2">
+                {state.modelError}
+              </p>
+              <MissingKeyLink message={state.modelError} onOpen={onOpenSettings} />
+            </div>
           ) : null}
           {analysisStale ? <p className="mt-2 text-ink">{analysisStale}</p> : null}
           <label className="mt-3 flex min-h-11 items-start gap-2">
@@ -1333,6 +1326,7 @@ function ConceiveMain({
   onSearch,
   onSave,
   model,
+  onOpenSettings,
 }: {
   state: ConceiveState;
   setConceive: Dispatch<SetStateAction<ConceiveState>>;
@@ -1344,6 +1338,7 @@ function ConceiveMain({
   onSearch: () => void;
   onSave: () => void;
   model: string;
+  onOpenSettings: () => void;
 }) {
   const text = state.loaded?.editText || state.paste;
   return (
@@ -1401,9 +1396,12 @@ function ConceiveMain({
           <span>整理要求和生成框架时，这些文字会经本机服务发到 OpenRouter。文献检索只发送检索词。</span>
         </label>
         {state.modelError ? (
-          <p role="alert" className="mt-3 border-l-4 border-ink bg-sunk px-3 py-2">
-            {state.modelError}
-          </p>
+          <div className="mt-3">
+            <p role="alert" className="border-l-4 border-ink bg-sunk px-3 py-2">
+              {state.modelError}
+            </p>
+            <MissingKeyLink message={state.modelError} onOpen={onOpenSettings} />
+          </div>
         ) : null}
         <div className="mt-3 flex flex-wrap gap-2">
           <Button type="button" disabled={state.running} onClick={onRequirements}>

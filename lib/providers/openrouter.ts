@@ -1,4 +1,12 @@
 import { KNOWN_MODEL } from "@/lib/limits";
+import {
+  chatCompletionsUrl,
+  isDashScopeBase,
+  isOpenRouterBase,
+  resolveLlmBaseUrl,
+  supportsJsonSchema,
+} from "@/lib/providers/llm-config";
+import { ensureJsonPrompt } from "@/lib/prompts/shared";
 import { TIMEOUT_BILLING_NOTE, nextRetryDelay } from "@/lib/workflows/task";
 
 export interface CompletionRequest {
@@ -8,8 +16,15 @@ export interface CompletionRequest {
   schemaName: string;
   schema: Record<string, unknown>;
   key: string;
+  /** OpenAI-compatible API root, e.g. https://openrouter.ai/api/v1 */
+  baseUrl?: string | null;
   timeoutMs?: number;
   signal?: AbortSignal;
+  /**
+   * When set, send enable_thinking for DashScope/Qwen-compatible gateways.
+   * Daily polish should pass false; deep routes may pass true or omit.
+   */
+  enableThinking?: boolean;
 }
 
 export interface CompletionSuccess {
@@ -32,7 +47,7 @@ export function estimateCost(chars: number, calls: number, modelId: string): {
   highUsd: number | null;
   note: string;
 } {
-  if (modelId !== KNOWN_MODEL.id) {
+  if (modelId !== KNOWN_MODEL.id || !KNOWN_MODEL.promptPerToken) {
     return {
       lowUsd: null,
       highUsd: null,
@@ -60,12 +75,15 @@ export function extractJson(text: string): unknown {
 }
 
 function bodyFor(request: CompletionRequest, structured: boolean) {
-  return {
+  const messages = structured
+    ? { system: request.system, user: request.user }
+    : ensureJsonPrompt(request.system, request.user, request.schema);
+  const body: Record<string, unknown> = {
     model: request.model,
     temperature: 0.2,
     messages: [
-      { role: "system", content: request.system },
-      { role: "user", content: request.user },
+      { role: "system", content: messages.system },
+      { role: "user", content: messages.user },
     ],
     response_format: structured
       ? {
@@ -74,6 +92,15 @@ function bodyFor(request: CompletionRequest, structured: boolean) {
         }
       : { type: "json_object" },
   };
+  // DashScope Qwen hybrid-thinking models need an explicit flag on non-streaming calls.
+  if (typeof request.enableThinking === "boolean") {
+    const base = resolveLlmBaseUrl(request.baseUrl);
+    // Only DashScope/Aliyun accept enable_thinking; other gateways may reject unknown fields.
+    if (isDashScopeBase(base)) {
+      body.enable_thinking = request.enableThinking;
+    }
+  }
+  return body;
 }
 
 async function postOnce(
@@ -86,15 +113,20 @@ async function postOnce(
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   const onAbort = () => controller.abort();
   request.signal?.addEventListener("abort", onAbort);
+  const baseUrl = resolveLlmBaseUrl(request.baseUrl);
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${request.key}`,
+    "Content-Type": "application/json",
+  };
+  // OpenRouter optional attribution headers; omit for other gateways.
+  if (isOpenRouterBase(baseUrl)) {
+    headers["HTTP-Referer"] = "http://localhost:4721";
+    headers["X-OpenRouter-Title"] = "pagebond";
+  }
   try {
-    return await fetchImpl("https://openrouter.ai/api/v1/chat/completions", {
+    return await fetchImpl(chatCompletionsUrl(baseUrl), {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${request.key}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "http://localhost:4721",
-        "X-OpenRouter-Title": "pagebond",
-      },
+      headers,
       body: JSON.stringify(bodyFor(request, structured)),
       signal: controller.signal,
     });
@@ -114,7 +146,11 @@ export async function completeJson(
   const fetchImpl = deps?.fetchImpl ?? fetch;
   const sleep = deps?.sleep ?? ((ms: number) => new Promise((resolve) => setTimeout(resolve, ms)));
   const timeoutMs = request.timeoutMs ?? 120_000;
-  let structured = request.model === KNOWN_MODEL.id || request.schemaName.length > 0;
+  const baseUrl = resolveLlmBaseUrl(request.baseUrl);
+  // DeepSeek rejects json_schema; prefer json_object (prompt must contain "json").
+  let structured =
+    supportsJsonSchema(baseUrl, request.model) &&
+    (request.model === KNOWN_MODEL.id || request.schemaName.length > 0);
   let attempt = 0;
   let retriedFormat = false;
 
@@ -176,4 +212,4 @@ export async function completeJson(
   return { ok: false, code: "UPSTREAM", message: "限流后已退避两次，仍然失败。已完成的块会保留。" };
 }
 
-export { bodyFor as buildOpenRouterBody };
+export { bodyFor as buildOpenRouterBody, bodyFor as buildCompletionBody };

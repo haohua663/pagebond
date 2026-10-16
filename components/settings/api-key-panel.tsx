@@ -3,34 +3,50 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { assessKeyDraft, type KeySource } from "@/lib/providers/credentials";
-import { DEFAULT_MODEL, KNOWN_MODEL } from "@/lib/limits";
+import { DEFAULT_LLM_BASE_URL } from "@/lib/providers/llm-config";
+
+export type RouteStatus = {
+  daily?: { label: string; model: string; keyConfigured: boolean };
+  deep?: { label: string; model: string; keyConfigured: boolean };
+};
 
 export function MissingKeyLink({ message, onOpen }: { message: string; onOpen: () => void }) {
-  if (!message.includes("没有可用密钥")) return null;
+  if (!message.includes("没有可用密钥") && !message.includes("需要 Qwen") && !message.includes("需要 DeepSeek")) {
+    return null;
+  }
   return (
-    <button type="button" className="mt-2 min-h-11 cursor-pointer underline" onClick={onOpen}>
+    <button type="button" className="mt-2 min-h-11 cursor-pointer rounded-xl px-3 text-sm text-ink underline-offset-4 hover:bg-sunk hover:underline" onClick={onOpen}>
       到设置添加密钥
     </button>
   );
 }
 
 export function SettingsScreen({
-  model,
+  model: _model,
+  baseUrl,
   keySource,
   sessionLabel,
-  onModel,
+  routes,
+  onModel: _onModel,
+  onBaseUrl: _onBaseUrl,
   onAdded,
   onClearSession,
   onStart,
 }: {
   model: string;
+  baseUrl: string;
   keySource: KeySource;
   sessionLabel: string | null;
+  routes?: RouteStatus | null;
   onModel: (value: string) => void;
+  onBaseUrl: (value: string) => void;
   onAdded: (key: string, label: string) => void;
   onClearSession: () => void;
   onStart: () => void;
 }) {
+  void _model;
+  void _onModel;
+  void _onBaseUrl;
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,9 +63,14 @@ export function SettingsScreen({
     setBusy(true);
     setError(null);
     try {
+      const headers: Record<string, string> = { "X-Pagebond-Session-Key": assessed.key };
+      const trimmedBase = baseUrl.trim().replace(/\/+$/, "");
+      if (trimmedBase && trimmedBase !== DEFAULT_LLM_BASE_URL) {
+        headers["X-Pagebond-Session-Base-Url"] = trimmedBase;
+      }
       const response = await fetch("/api/credentials/check", {
         method: "POST",
-        headers: { "X-Pagebond-Session-Key": assessed.key },
+        headers,
       });
       const data = (await response.json().catch(() => null)) as { ok?: boolean; message?: string; label?: string } | null;
       if (!response.ok || !data?.ok || !data.label) {
@@ -70,20 +91,34 @@ export function SettingsScreen({
 
   return (
     <div className="space-y-4" data-testid="settings-screen">
-      <section className="border border-line bg-paper p-4 shadow-[inset_4px_0_0_#9ee86f] sm:p-6">
+      <section className="desk-card relative overflow-hidden p-4 sm:p-6 before:absolute before:inset-y-4 before:left-0 before:w-1 before:rounded-full before:bg-lime">
         <h1 className="text-2xl font-medium tracking-tight">API 密钥</h1>
         <p className="mt-2 max-w-xl text-ink-soft">
-          只用来调用模型。核对通过后留在这次页面会话的内存里，不写入浏览器存储，也不进存档。刷新后需要再添加。
+          兼容 OpenAI Chat Completions 的接口。核对通过后留在这次页面会话的内存里，不写入浏览器存储，也不进存档。刷新后需要再添加。
         </p>
         <p className="mt-4 text-ink" data-testid="api-key-status">
           {keySource === "session"
             ? `这次会话已添加${sessionLabel ? `：${sessionLabel}` : ""}。它优先于服务端密钥。`
             : keySource === "server"
-              ? "服务端环境变量里已经有密钥，可以直接开始。另填一把时，以你添加的这把为准。"
-              : "还没有密钥。添加完成之后，才能开始改稿或起稿里的模型步骤。"}
+              ? "服务端已配置平台密钥，可以直接开始。若你另填一把会话密钥，会优先用你的（不占平台日额度）。"
+              : "还没有可用密钥。可在此添加，或由部署方配置"}
         </p>
+        {routes ? (
+          <ul className="mt-3 max-w-xl space-y-1 text-sm text-ink-soft" data-testid="route-status">
+            <li>
+              日常（改写／人话化／框架）：{routes.daily?.label || "日常 · Qwen3.7-Plus"}
+              {routes.daily?.keyConfigured ? " · 已配置" : " · 未配置钥匙"}
+              {routes.daily?.model ? ` · ${routes.daily.model}` : ""}
+            </li>
+            <li>
+              深度（诊断与分析）：{routes.deep?.label || "深度 · DeepSeek-V4-Pro"}
+              {routes.deep?.keyConfigured ? " · 已配置" : " · 未配置钥匙"}
+              {routes.deep?.model ? ` · ${routes.deep.model}` : ""}
+            </li>
+          </ul>
+        ) : null}
         <label className="mt-4 block max-w-xl" htmlFor="api-key-draft">
-          OpenRouter 密钥
+          API 密钥（会话 BYOK）
           <input
             id="api-key-draft"
             data-testid="api-key-input"
@@ -91,7 +126,7 @@ export function SettingsScreen({
             autoComplete="off"
             autoFocus
             spellCheck={false}
-            className="mt-1 w-full border border-line-strong bg-desk p-3"
+            className="desk-input mt-1 w-full bg-desk p-3"
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             onKeyDown={(event) => {
@@ -103,7 +138,7 @@ export function SettingsScreen({
           />
         </label>
         {error ? (
-          <p role="alert" data-testid="api-key-error" className="mt-3 max-w-xl border-l-4 border-ink bg-sunk px-3 py-2">
+          <p role="alert" data-testid="api-key-error" className="mt-3 max-w-xl rounded-xl border border-line bg-sunk/80 px-3 py-2">
             {error}
           </p>
         ) : null}
@@ -135,21 +170,6 @@ export function SettingsScreen({
             </Button>
           ) : null}
         </div>
-      </section>
-      <section className="border border-line bg-paper p-4 sm:p-6">
-        <h2 className="text-lg font-medium">模型</h2>
-        <label className="mt-3 block max-w-xl" htmlFor="model-slug">
-          模型标识
-          <input
-            id="model-slug"
-            className="mt-1 w-full border border-line bg-desk p-3"
-            value={model}
-            onChange={(event) => onModel(event.target.value)}
-          />
-        </label>
-        <p className="mt-2 max-w-xl text-sm text-ink-soft">
-          默认 {DEFAULT_MODEL}，上下文约 {KNOWN_MODEL.contextLength.toLocaleString()} token。换成别的标识后，费用估算需要另外核对。
-        </p>
       </section>
     </div>
   );

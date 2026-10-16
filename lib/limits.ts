@@ -13,24 +13,34 @@ export const LIMITS = {
   maxMissingQuestions: 3,
 } as const;
 
-export const PROMPT_VERSION = "2026-10-15.1";
+export const PROMPT_VERSION = "2026-10-16.2";
+
+/** Daily / default model: Qwen3.7-Plus pinned snapshot (override with QWEN_MODEL or LLM_MODEL). */
+export const DAILY_MODEL_DEFAULT = "qwen3.7-plus-2026-05-26";
+
+/** Deep optional model for analyze (override with DEEPSEEK_MODEL). */
+export const DEEP_MODEL_DEFAULT = "deepseek-v4-pro";
 
 /**
- * Default slug from OpenRouter quickstart (checked 2026-10-15).
- * `GET /api/v1/models` lists it with context_length 1050000 and structured_outputs.
+ * Default model id shown in settings and used when no route-specific env is set.
+ * Dual routing prefers QWEN_MODEL / DEEPSEEK_MODEL per route.
  */
-export const DEFAULT_MODEL = "~openai/gpt-sol-latest";
+export const DEFAULT_MODEL = DAILY_MODEL_DEFAULT;
 
+/**
+ * Known model metadata for cost hints. Price fields are placeholders until re-checked
+ * against the active gateway; unknown ids skip numeric estimates.
+ */
 export const KNOWN_MODEL = {
   id: DEFAULT_MODEL,
-  contextLength: 1_050_000,
-  maxCompletionTokens: 128_000,
+  contextLength: 262_144,
+  maxCompletionTokens: 65_536,
   structuredOutputs: true,
-  promptPerToken: 0.000002,
-  completionPerToken: 0.00001,
-  longContextFromTokens: 272_000,
-  longPromptPerToken: 0.000004,
-  longCompletionPerToken: 0.000015,
-  checkedOn: "2026-10-15",
-  source: "https://openrouter.ai/api/v1/models",
+  promptPerToken: 0,
+  completionPerToken: 0,
+  longContextFromTokens: 128_000,
+  longPromptPerToken: 0,
+  longCompletionPerToken: 0,
+  checkedOn: "2026-10-16",
+  source: "aliyun-dashscope-qwen3.7-plus",
 } as const;

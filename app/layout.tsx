@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "pagebond",
+  title: "PAGEBOND",
   description: "起稿、改稿、存档。确认之前不把正文发给模型。",
 };
 

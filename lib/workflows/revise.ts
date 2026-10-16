@@ -68,3 +68,36 @@ export function idsPreserved(original: DocumentBlock[], draft: DocumentBlock[]):
   if (original.length !== draft.length) return false;
   return original.every((block, index) => block.id === draft[index]?.id);
 }
+
+export function blocksFromChecks(original: DocumentBlock[], checks: BlockCheck[]): DocumentBlock[] {
+  const byId = new Map(checks.map((check) => [check.id, check]));
+  return original.map((block) => {
+    const check = byId.get(block.id);
+    if (!check || check.status === "reverted") return block;
+    return { ...block, text: check.suggestedText };
+  });
+}
+
+export function remapChecksToOriginal(original: DocumentBlock[], checks: BlockCheck[]): BlockCheck[] {
+  const byId = new Map(checks.map((check) => [check.id, check]));
+  return original.map((block) => {
+    const check = byId.get(block.id);
+    if (!check) {
+      return {
+        id: block.id,
+        status: "reverted" as const,
+        reasons: ["这一段没有返回"],
+        text: block.text,
+        suggestedText: block.text,
+        changed: false,
+      };
+    }
+    const suggested = check.suggestedText;
+    return {
+      ...check,
+      text: block.text,
+      suggestedText: suggested,
+      changed: suggested !== block.text,
+    };
+  });
+}

@@ -1,21 +1,34 @@
 @import "tailwindcss";
 
 @theme {
-  --color-desk: #f2f1ed;
-  --color-paper: #fcfcfb;
-  --color-sunk: #e9e8e3;
-  --color-ink: #1a1a18;
-  --color-ink-soft: #5e5e56;
-  --color-line: #e1e0da;
-  --color-line-strong: #c6c4bd;
+  --color-desk: #f7f7f5;
+  --color-paper: #ffffff;
+  --color-sunk: #efefec;
+  --color-ink: #1c1c1a;
+  --color-ink-soft: #6b6b63;
+  --color-line: #e6e6e1;
+  --color-line-strong: #d0d0c9;
   --color-lime: #9ee86f;
   --font-ui: "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
   --font-manuscript: "Songti SC", "STSong", "Noto Serif CJK SC", "Source Han Serif SC", "PMingLiU", "Palatino Linotype", Palatino, serif;
+  --animate-scroll: scroll var(--animation-duration, 40s) var(--animation-direction, forwards) linear infinite;
+  --shadow-desk: 0 1px 2px rgb(28 28 26 / 0.03), 0 10px 28px rgb(28 28 26 / 0.045);
+}
+
+@keyframes scroll {
+  to {
+    transform: translate(calc(-50% - 0.5rem));
+  }
+}
+
+.animate-scroll {
+  animation: scroll var(--animation-duration, 40s) var(--animation-direction, forwards) linear infinite;
 }
 
 html {
   background: var(--color-desk);
   color: var(--color-ink);
+  scroll-behavior: smooth;
 }
 
 body {
@@ -51,31 +64,127 @@ body {
     transition: none !important;
     scroll-behavior: auto !important;
   }
+
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 .desk-grid {
   display: grid;
-  gap: 16px;
-  padding: 16px 16px 48px;
+  gap: 20px;
+  padding: 20px 16px 56px;
 }
 
 @media (min-width: 768px) {
   .desk-grid {
-    padding: 20px 24px 64px;
+    gap: 24px;
+    padding: 24px 28px 72px;
   }
 }
 
 @media (min-width: 1024px) {
   .desk-grid {
-    grid-template-columns: 200px minmax(0, 1fr) 300px;
+    grid-template-columns: 212px minmax(0, 1fr) 308px;
     align-items: start;
-    gap: 20px;
+    gap: 28px;
   }
 }
 
 @media (min-width: 1440px) {
   .desk-grid {
-    grid-template-columns: 220px minmax(0, 46rem) 320px;
+    grid-template-columns: 228px minmax(0, 46rem) 328px;
     justify-content: center;
   }
+}
+
+/* Soft bento surfaces — desk application layer */
+.desk-card {
+  border-radius: 1rem;
+  border: 1px solid var(--color-line);
+  background: var(--color-paper);
+  box-shadow: var(--shadow-desk);
+}
+
+.desk-card-quiet {
+  border-radius: 1rem;
+  border: 1px solid var(--color-line);
+  background: var(--color-paper);
+}
+
+.desk-well {
+  border-radius: 1.25rem;
+  border: 1.5px dashed var(--color-line-strong);
+  background: color-mix(in srgb, var(--color-desk) 55%, white);
+}
+
+.desk-input {
+  border-radius: 0.875rem;
+  border: 1px solid var(--color-line);
+  background: var(--color-paper);
+}
+
+.desk-callout {
+  border-radius: 1rem;
+  border: 1px solid var(--color-line);
+  background: color-mix(in srgb, var(--color-sunk) 55%, white);
+  box-shadow: 0 1px 2px rgb(28 28 26 / 0.02);
+}
+
+.desk-nav-pill {
+  border-radius: 9999px;
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.desk-nav-pill[aria-pressed="true"] {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  box-shadow: 0 1px 2px rgb(28 28 26 / 0.04), 0 6px 16px rgb(28 28 26 / 0.04);
+  position: relative;
+}
+
+.desk-nav-pill[aria-pressed="true"]::before {
+  content: "";
+  position: absolute;
+  left: 0.7rem;
+  top: 50%;
+  width: 0.28rem;
+  height: 0.9rem;
+  border-radius: 9999px;
+  background: var(--color-lime);
+  transform: translateY(-50%);
+}
+
+.desk-nav-pill[aria-pressed="true"] > span:first-child {
+  padding-left: 0.85rem;
+}
+
+.desk-chip {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  border-radius: 9999px;
+  border: 1px solid var(--color-line);
+  background: color-mix(in srgb, var(--color-sunk) 40%, white);
+  padding: 0.45rem 0.9rem;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--color-ink-soft);
+}
+
+.desk-chip-dot {
+  margin-top: 0.35rem;
+  flex-shrink: 0;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 9999px;
+  background: var(--color-lime);
+}
+
+
+.hero-parallax {
+  background:
+    radial-gradient(1200px 500px at 10% -10%, #ebe6dc 0%, transparent 55%),
+    radial-gradient(900px 420px at 90% 0%, #ddd6cb 0%, transparent 50%),
+    var(--color-desk);
 }

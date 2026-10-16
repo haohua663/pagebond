@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { assessKeyDraft, safeKeyLabel, verifyOpenRouterKey } from "@/lib/providers/credentials";
+import { assessKeyDraft, safeKeyLabel, verifyApiKey, verifyOpenRouterKey } from "@/lib/providers/credentials";
 
 const sampleKey = "sk-or-v1-test-key-value-0001";
 
@@ -47,5 +47,22 @@ describe("verifyOpenRouterKey", () => {
 
   it("keeps OpenRouter's own masked label", () => {
     expect(safeKeyLabel("sk-or-v1-au7...890", sampleKey)).toBe("sk-or-v1-au7...890");
+  });
+});
+
+describe("verifyApiKey generic gateway", () => {
+  it("accepts a key when GET /models succeeds", async () => {
+    const fetchImpl = vi.fn(async () => new Response(JSON.stringify({ data: [] }), { status: 200 }));
+    const result = await verifyApiKey(sampleKey, fetchImpl, "https://api.example.com/v1");
+    expect(result.ok).toBe(true);
+    const [url, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe("https://api.example.com/v1/models");
+    expect(init.method).toBe("GET");
+  });
+
+  it("accepts format-valid key when /models is missing (404)", async () => {
+    const fetchImpl = vi.fn(async () => new Response("no", { status: 404 }));
+    const result = await verifyApiKey(sampleKey, fetchImpl, "https://api.example.com/v1");
+    expect(result.ok).toBe(true);
   });
 });

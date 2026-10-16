@@ -15,7 +15,8 @@ function arg(name, fallback = "") {
 const inputPath = arg("--input");
 const outputPath = arg("--output");
 const language = arg("--language", "zh");
-const model = process.env.PAGEBOND_MODEL || process.env.YEYUAN_MODEL || "~openai/gpt-sol-latest";
+const model = process.env.QWEN_MODEL || process.env.LLM_MODEL || process.env.PAGEBOND_MODEL || process.env.YEYUAN_MODEL || "qwen3.7-plus-2026-05-26";
+const baseUrl = (process.env.LLM_BASE_URL || "https://openrouter.ai/api/v1").replace(/\/+$/, "");
 
 if (!inputPath) {
   console.error("用法：node scripts/revise.mjs --input 原稿.md --output 建议修改稿.md --language zh");
@@ -28,9 +29,9 @@ if (!source) {
   process.exit(2);
 }
 
-const key = process.env.OPENROUTER_API_KEY?.trim();
+const key = (process.env.QWEN_API_KEY || process.env.LLM_API_KEY || process.env.OPENROUTER_API_KEY)?.trim();
 if (!key) {
-  console.error("没有 OPENROUTER_API_KEY。未调用模型，没有写出修改稿。");
+  console.error("没有 QWEN_API_KEY / LLM_API_KEY（或 OPENROUTER_API_KEY）。未调用模型，没有写出修改稿。");
   process.exit(2);
 }
 
@@ -48,13 +49,14 @@ const protections = (text) => {
   return found;
 };
 
-const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+const headers = {
+  Authorization: `Bearer ${key}`,
+  "Content-Type": "application/json",
+};
+if (baseUrl.includes("openrouter.ai")) headers["X-OpenRouter-Title"] = "pagebond";
+const response = await fetch(`${baseUrl}/chat/completions`, {
   method: "POST",
-  headers: {
-    Authorization: `Bearer ${key}`,
-    "Content-Type": "application/json",
-    "X-OpenRouter-Title": "pagebond",
-  },
+  headers,
   body: JSON.stringify({
     model,
     temperature: 0.2,

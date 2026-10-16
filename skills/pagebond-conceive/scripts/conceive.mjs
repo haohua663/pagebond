@@ -16,7 +16,7 @@ const inputPath = arg("--input");
 const notesPath = arg("--notes");
 const outputPath = arg("--output");
 const doSearch = process.argv.includes("--search");
-const model = process.env.PAGEBOND_MODEL || process.env.YEYUAN_MODEL || "~openai/gpt-sol-latest";
+const model = process.env.QWEN_MODEL || process.env.LLM_MODEL || process.env.PAGEBOND_MODEL || process.env.YEYUAN_MODEL || "qwen3.7-plus-2026-05-26";
 
 if (!inputPath && !notesPath) {
   console.error("用法：node scripts/conceive.mjs --input 要求.md --notes 补充.txt --output 框架.md");
@@ -86,17 +86,18 @@ function render(outline, literature, banner) {
   return `${parts.join("\n")}\n`;
 }
 
-const key = process.env.OPENROUTER_API_KEY?.trim();
+const key = (process.env.QWEN_API_KEY || process.env.LLM_API_KEY || process.env.OPENROUTER_API_KEY)?.trim();
+const baseUrl = (process.env.LLM_BASE_URL || "https://openrouter.ai/api/v1").replace(/\/+$/, "");
 let outline = localOutline();
 let banner = "本地整理，未调用模型。这不是已完成的论文。";
 
 if (!key) {
-  console.error("没有 OPENROUTER_API_KEY。未调用模型。");
+  console.error("没有 QWEN_API_KEY / LLM_API_KEY（或 OPENROUTER_API_KEY）。未调用模型。");
   if (outputPath) writeFileSync(outputPath, render(outline, "", banner));
   process.exit(2);
 }
 
-const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+const response = await fetch(`${baseUrl}/chat/completions`, {
   method: "POST",
   headers: {
     Authorization: `Bearer ${key}`,

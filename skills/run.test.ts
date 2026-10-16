@@ -14,7 +14,7 @@ describe("phase F skill entrypoints", () => {
     try {
       execFileSync("node", ["skills/pagebond-revise/scripts/revise.mjs", "--input", input, "--output", output, "--language", "zh"], {
         encoding: "utf8",
-        env: { ...process.env, OPENROUTER_API_KEY: "" },
+        env: { ...process.env, OPENROUTER_API_KEY: "", LLM_API_KEY: "" },
       });
     } catch (error) {
       stderr = String((error as { stderr?: string }).stderr || "");

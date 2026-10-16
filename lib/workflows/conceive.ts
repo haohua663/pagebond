@@ -105,26 +105,41 @@ export function localRequirements(requirementText: string, notes: string): Requi
     missing.push("还不知道可以用哪些材料。");
   }
   const titleFixed = /题目[:：]\s*\S{4,}/.test(requirementText) || /《[^》]{4,}》/.test(requirementText);
-  const directions: DirectionOption[] = titleFixed
-    ? []
-    : [
-        {
-          title: keywords[0] ? `围绕「${keywords[0].term}」做范围界定` : "先把问题收成一个可核对的范围",
-          question: "现有材料能支持哪个具体问题？",
-          materials: "要求里已经点名的材料。没有点名的部分保持空白。",
-          method: "还不能确定。缺材料时不预设实验或访谈。",
-          workload: "取决于缺口是否补上。",
-          difficulty: "题目未定，范围容易散。",
-        },
-        {
-          title: "只整理要求，不新开研究问题",
-          question: "若材料不足，这篇能完成到哪一步？",
-          materials: "用户已经写出的补充。",
-          method: "以文献或文本细读为上限，不写成已完成的实证。",
-          workload: "低于新采集数据。",
-          difficulty: "容易把计划写成结果。",
-        },
-      ].slice(0, 3);
+  const focal = keywords[0]?.term;
+  const directions: DirectionOption[] = [
+    {
+      title: focal ? `收窄「${focal}」的可核对问题` : "收成一个可核对的小问题",
+      question: "现有材料能直接回答哪一个具体问题？",
+      materials: "要求里已点名的材料；未点名的保持空白。",
+      method: "以文本或文献细读为上限，缺材料不预设实验。",
+      workload: "中等：先界定再写。",
+      difficulty: "范围一散就写不完。",
+    },
+    {
+      title: focal ? `对比视角下的「${focal}」` : "用对比或分歧切入",
+      question: "两个对立说法里，哪一边现有证据更站得住？",
+      materials: "用户补充与要求中的对照点。",
+      method: "对照阅读，不补造数据。",
+      workload: "偏低到中等。",
+      difficulty: "容易写成两边都对的空话。",
+    },
+    {
+      title: "按材料能支撑的上限写，不新开采集",
+      question: "若不补访/不补实验，这篇能完成到哪一步？",
+      materials: "已经写出的补充与要求原文。",
+      method: "文献或文本分析；未完成工作只写计划。",
+      workload: "低于新采集。",
+      difficulty: "计划易被写成结果。",
+    },
+    {
+      title: titleFixed ? "同一题目下的方法或对象变体" : "换一个更小的对象或场景",
+      question: "把对象或场景再缩小一档后，论证是否更清楚？",
+      materials: "要求允许的对象范围。",
+      method: "个案或片段细读。",
+      workload: "中等。",
+      difficulty: "缩太小可能不够字数。",
+    },
+  ].slice(0, 4);
   return {
     requirements,
     keywords,

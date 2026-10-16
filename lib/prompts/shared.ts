@@ -55,3 +55,27 @@ export function promptStamp(): string {
 export function articleLabel(articleType: ArticleType): string {
   return ARTICLE_TYPE_LABEL[articleType];
 }
+
+/** DeepSeek json_object requires the literal word "json" somewhere in the prompt. */
+export const JSON_OBJECT_INSTRUCTION = "Respond with a JSON object.";
+
+/**
+ * Ensure prompts used with response_format json_object contain the word json,
+ * and optionally remind the model of the expected schema shape.
+ */
+export function ensureJsonPrompt(
+  system: string,
+  user: string,
+  schema?: Record<string, unknown>,
+): { system: string; user: string } {
+  let nextSystem = system;
+  const blob = `${nextSystem}\n${user}`;
+  if (!/\bjson\b/i.test(blob)) {
+    nextSystem = `${nextSystem}\n${JSON_OBJECT_INSTRUCTION}`;
+  }
+  if (schema && Object.keys(schema).length > 0 && !/must match this schema/i.test(nextSystem)) {
+    nextSystem = `${nextSystem}\nThe JSON object must match this schema:\n${JSON.stringify(schema)}`;
+  }
+  return { system: nextSystem, user };
+}
+

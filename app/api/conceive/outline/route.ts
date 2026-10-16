@@ -1,5 +1,6 @@
-import { asOptions, credentialOrNull, noKeyBody } from "@/lib/api/respond";
-import { DEFAULT_MODEL, LIMITS } from "@/lib/limits";
+import { failWithGate, jsonWithGate, openModelGate } from "@/lib/api/guard";
+import { asOptions } from "@/lib/api/respond";
+import { LIMITS } from "@/lib/limits";
 import { outlineMessages } from "@/lib/prompts/conceive";
 import { completeJson } from "@/lib/providers/openrouter";
 import { outlineSchema } from "@/lib/schemas/outputs";
@@ -50,10 +51,11 @@ export async function POST(request: Request) {
   if ([...`${requirementText}${notes}`.replace(/\s/g, "")].length > LIMITS.targetChars) {
     return Response.json({ ok: false, code: "TOO_LONG", message: "超过目标上限，没有截断。" }, { status: 413 });
   }
-  const credential = credentialOrNull(request);
-  if (!credential.key) return Response.json(noKeyBody(), { status: 401 });
+  const requestedModel = typeof body?.model === "string" ? body.model : null;
+  const gated = openModelGate(request, "daily", requestedModel);
+  if (!gated.ok) return gated.response;
+  const { ctx } = gated;
   const options = asOptions(body?.options);
-  const model = typeof body?.model === "string" && body.model.trim() ? body.model.trim() : DEFAULT_MODEL;
   const assumptions = Array.isArray(body?.assumptions) ? body.assumptions.map(String) : [];
   const messages = outlineMessages({
     requirementText,
@@ -63,24 +65,36 @@ export async function POST(request: Request) {
     assumptions,
   });
   const result = await completeJson({
-    model,
-    key: credential.key,
+    model: ctx.model,
+    key: ctx.key,
+    baseUrl: ctx.baseUrl,
+    enableThinking: ctx.enableThinking,
     schemaName: "pagebond_outline",
     schema: outlineJsonSchema,
     system: messages.system,
     user: messages.user,
   });
-  if (!result.ok) return Response.json(result, { status: result.code === "TIMEOUT" ? 504 : 502 });
+  if (!result.ok) {
+    return failWithGate(ctx, result, result.code === "TIMEOUT" ? 504 : 502);
+  }
   const parsed = outlineSchema.safeParse(result.json);
   if (!parsed.success) {
-    return Response.json({ ok: false, code: "BAD_RESPONSE", message: "框架没有通过校验，没有覆盖已有框架。" }, { status: 502 });
+    return failWithGate(
+      ctx,
+      { ok: false, code: "BAD_RESPONSE", message: "框架没有通过校验，没有覆盖已有框架。" },
+      502,
+    );
   }
   const queries = parsed.data.literatureQueries.map((item) => item.trim()).filter(Boolean).slice(0, LIMITS.maxLiteratureQueries);
-  return Response.json({
-    ok: true,
-    keySource: credential.source,
-    model: result.model,
-    usage: result.usage,
-    outline: { ...parsed.data, literatureQueries: queries, origin: "model" },
-  });
+  return jsonWithGate(
+    ctx,
+    {
+      ok: true,
+      model: result.model,
+      usage: result.usage,
+      outline: { ...parsed.data, literatureQueries: queries, origin: "model" },
+    },
+    undefined,
+    result.usage,
+  );
 }

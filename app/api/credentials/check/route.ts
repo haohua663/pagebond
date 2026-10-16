@@ -1,11 +1,12 @@
-import { readSessionKey, verifyOpenRouterKey } from "@/lib/providers/credentials";
+import { readSessionKey, verifyApiKey } from "@/lib/providers/credentials";
+import { readSessionBaseUrl } from "@/lib/providers/llm-config";
 
 export async function POST(request: Request) {
   const key = readSessionKey(request);
   if (!key) {
-    return Response.json({ ok: false, message: "先粘贴 OpenRouter 密钥。" }, { status: 400 });
+    return Response.json({ ok: false, message: "先粘贴 API 密钥。" }, { status: 400 });
   }
-  const result = await verifyOpenRouterKey(key);
+  const result = await verifyApiKey(key, fetch, readSessionBaseUrl(request));
   if (!result.ok) {
     const local = result.message.includes("没有发送") || result.message.startsWith("先粘贴");
     return Response.json({ ok: false, message: result.message }, { status: local ? 400 : 401 });

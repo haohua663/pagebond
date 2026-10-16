@@ -1,7 +1,7 @@
 import { filterRealQuotes } from "@/lib/analysis/suggestions";
 import type { Suggestion } from "@/lib/analysis/suggestions";
-import { asBlocks, asOptions, credentialOrNull, noKeyBody, tooLong, tooLongMessage } from "@/lib/api/respond";
-import { DEFAULT_MODEL } from "@/lib/limits";
+import { failWithGate, jsonWithGate, openModelGate } from "@/lib/api/guard";
+import { asBlocks, asOptions, tooLong, tooLongMessage } from "@/lib/api/respond";
 import { diagnoseMessages } from "@/lib/prompts/revise";
 import { completeJson } from "@/lib/providers/openrouter";
 import { diagnoseJsonSchema, diagnoseSchema } from "@/lib/schemas/outputs";
@@ -11,41 +11,51 @@ export async function POST(request: Request) {
   const blocks = asBlocks(body?.blocks);
   if (!blocks) return Response.json({ ok: false, code: "BAD_REQUEST", message: "需要先确认输入版。" }, { status: 400 });
   if (tooLong(blocks)) return Response.json({ ok: false, code: "TOO_LONG", message: tooLongMessage() }, { status: 413 });
-  const credential = credentialOrNull(request);
-  if (!credential.key) return Response.json(noKeyBody(), { status: 401 });
+  const requestedModel = typeof body?.model === "string" ? body.model : null;
+  const gated = openModelGate(request, "deep", requestedModel);
+  if (!gated.ok) return gated.response;
+  const { ctx } = gated;
   const options = asOptions(body?.options);
-  const model = typeof body?.model === "string" && body.model.trim() ? body.model.trim() : DEFAULT_MODEL;
   const messages = diagnoseMessages(blocks, options);
   const result = await completeJson({
-    model,
-    key: credential.key,
+    model: ctx.model,
+    key: ctx.key,
+    baseUrl: ctx.baseUrl,
+    enableThinking: ctx.enableThinking,
     schemaName: "pagebond_diagnose",
     schema: diagnoseJsonSchema,
     system: messages.system,
     user: messages.user,
   });
-  if (!result.ok) return Response.json(result, { status: result.code === "TIMEOUT" ? 504 : 502 });
+  if (!result.ok) {
+    return failWithGate(ctx, result, result.code === "TIMEOUT" ? 504 : 502);
+  }
   const parsed = diagnoseSchema.safeParse(result.json);
   if (!parsed.success) {
-    return Response.json(
+    return failWithGate(
+      ctx,
       { ok: false, code: "BAD_RESPONSE", message: "诊断结构没有通过校验，没有写入正式结果。" },
-      { status: 502 },
+      502,
     );
   }
   const suggestions: Suggestion[] = filterRealQuotes(
     blocks,
     parsed.data.suggestions.map((item) => ({ ...item, origin: "model" as const })),
   );
-  return Response.json({
-    ok: true,
-    keySource: credential.source,
-    model: result.model,
-    usage: result.usage,
-    researchQuestion: parsed.data.researchQuestion,
-    terms: parsed.data.terms,
-    facts: parsed.data.facts,
-    summary: parsed.data.summary,
-    suggestions,
-    droppedSuggestions: parsed.data.suggestions.length - suggestions.length,
-  });
+  return jsonWithGate(
+    ctx,
+    {
+      ok: true,
+      model: result.model,
+      usage: result.usage,
+      researchQuestion: parsed.data.researchQuestion,
+      terms: parsed.data.terms,
+      facts: parsed.data.facts,
+      summary: parsed.data.summary,
+      suggestions,
+      droppedSuggestions: parsed.data.suggestions.length - suggestions.length,
+    },
+    undefined,
+    result.usage,
+  );
 }

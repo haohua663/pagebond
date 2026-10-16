@@ -1,6 +1,6 @@
 import type { PaperRecord } from "@/lib/storage/types";
 
-const SECRET_KEYS = ["key", "apiKey", "api_key", "OPENROUTER_API_KEY", "authorization", "sessionKey"];
+const SECRET_KEYS = ["key", "apiKey", "api_key", "OPENROUTER_API_KEY", "LLM_API_KEY", "authorization", "sessionKey"];
 
 const BACKUP_APPS = new Set(["pagebond", "yeyuan"]);
 

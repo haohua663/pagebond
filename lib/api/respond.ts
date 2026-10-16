@@ -2,8 +2,27 @@ import { LIMITS } from "@/lib/limits";
 import { resolveCredential, readSessionKey } from "@/lib/providers/credentials";
 import type { DocumentBlock, IntakeOptions } from "@/lib/document/types";
 import { emptyOptions } from "@/lib/document/types";
+import type { LlmRoute } from "@/lib/providers/llm-config";
 
-export function noKeyBody() {
+export function noKeyBody(route?: LlmRoute) {
+  if (route === "deep") {
+    return {
+      ok: false as const,
+      code: "NO_KEY" as const,
+      route: "deep" as const,
+      message:
+        "深度分析需要 DeepSeek 密钥（DEEPSEEK_API_KEY）或通用 LLM_API_KEY。未调用模型。可以继续使用本地解析、对照和存档。",
+    };
+  }
+  if (route === "daily") {
+    return {
+      ok: false as const,
+      code: "NO_KEY" as const,
+      route: "daily" as const,
+      message:
+        "日常改稿需要 Qwen 密钥（QWEN_API_KEY）或通用 LLM_API_KEY。未调用模型。可以继续使用本地解析、对照和存档。",
+    };
+  }
   return {
     ok: false as const,
     code: "NO_KEY" as const,

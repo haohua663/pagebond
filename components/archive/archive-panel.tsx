@@ -19,15 +19,15 @@ export function ArchivePanel({
 }) {
   const reminder = reminderForCount(records.length);
   return (
-    <section data-testid="archive-panel" className="border border-line bg-paper p-4 sm:p-6">
+    <section data-testid="archive-panel" className="desk-card p-4 sm:p-6">
       <h2 className="text-2xl">存档</h2>
       <p className="mt-2 max-w-xl text-ink-soft">存在这台浏览器里。打开一条只查看，不调用模型。备份不含密钥。</p>
-      {reminder ? <p className="mt-3 border-l-4 border-lime pl-3">{reminder}</p> : null}
+      {reminder ? <p className="desk-callout mt-3 px-3 py-2 text-sm">{reminder}</p> : null}
       <div className="mt-4 flex flex-wrap gap-2">
         <Button type="button" variant="quiet" onClick={onExport}>
           导出备份
         </Button>
-        <label className="inline-flex min-h-11 cursor-pointer items-center rounded-sm bg-sunk px-4">
+        <label className="inline-flex min-h-11 cursor-pointer items-center rounded-xl bg-sunk px-4">
           导入备份
           <input
             className="sr-only"

@@ -79,6 +79,27 @@ export const outlineSchema = z.object({
   requirementsConflict: z.boolean(),
 });
 
+/** Shared JSON Schema for suggestion rows — keep in sync with Zod `suggestion`. */
+export const suggestionJsonSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["id", "priority", "dimension", "version", "blockId", "quote", "problem", "change", "verify"],
+  properties: {
+    id: { type: "string" },
+    priority: { type: "string", enum: ["high", "medium", "low"] },
+    dimension: {
+      type: "string",
+      enum: ["structure", "argument", "evidence", "method", "expression", "fact"],
+    },
+    version: { type: "string", enum: ["confirmed-input", "current-draft"] },
+    blockId: { type: "string" },
+    quote: { type: "string" },
+    problem: { type: "string" },
+    change: { type: "string" },
+    verify: { type: "string" },
+  },
+} as const;
+
 export const diagnoseJsonSchema = {
   type: "object",
   additionalProperties: false,
@@ -96,7 +117,35 @@ export const diagnoseJsonSchema = {
       },
     },
     summary: { type: "string" },
-    suggestions: { type: "array", items: { type: "object" } },
+    suggestions: { type: "array", items: suggestionJsonSchema },
+  },
+} as const;
+
+export const analyzeJsonSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["summary", "dimensions", "suggestions"],
+  properties: {
+    summary: { type: "string" },
+    dimensions: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["id", "conclusion", "resolved", "remaining", "needsMaterial"],
+        properties: {
+          id: {
+            type: "string",
+            enum: ["structure", "argument", "evidence", "method", "expression", "fact"],
+          },
+          conclusion: { type: "string" },
+          resolved: { type: "array", items: { type: "string" } },
+          remaining: { type: "array", items: { type: "string" } },
+          needsMaterial: { type: "array", items: { type: "string" } },
+        },
+      },
+    },
+    suggestions: { type: "array", items: suggestionJsonSchema },
   },
 } as const;
 

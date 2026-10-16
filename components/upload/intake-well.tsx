@@ -30,9 +30,9 @@ export function IntakeWell({
   const inputId = `${testId}-file`;
 
   return (
-    <section data-testid={testId} className="rounded-sm border border-dashed border-line-strong bg-paper p-4 sm:p-6">
+    <section data-testid={testId} className="desk-card p-4 sm:p-6">
       <div
-        className={`rounded-sm border border-line px-4 py-8 text-center ${over ? "border-ink bg-sunk" : "bg-desk/40"}`}
+        className={`desk-well px-4 py-10 text-center transition-colors ${over ? "border-ink bg-sunk" : ""}`}
         onDragOver={(event) => {
           event.preventDefault();
           setOver(true);
@@ -48,7 +48,7 @@ export function IntakeWell({
         <p className="text-xl text-ink">{title}</p>
         <p className="mx-auto mt-2 max-w-md text-ink-soft">{detail}</p>
         <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
-          <label htmlFor={inputId} className="inline-flex min-h-11 cursor-pointer items-center rounded-sm bg-ink px-4 text-paper">
+          <label htmlFor={inputId} className="inline-flex min-h-11 cursor-pointer items-center rounded-xl bg-ink px-5 text-paper shadow-sm">
             选择文件
           </label>
           <input
@@ -68,7 +68,7 @@ export function IntakeWell({
         {fileName ? <p className="mt-3 text-ink">当前文件：{fileName}</p> : null}
       </div>
       <div className="mt-4">
-        <label className="block text-ink" htmlFor={`${testId}-paste`}>
+        <label className="block text-sm font-medium text-ink-soft" htmlFor={`${testId}-paste`}>
           或者粘贴文字
         </label>
         <textarea
@@ -77,7 +77,7 @@ export function IntakeWell({
           value={paste}
           onChange={(event) => onPaste(event.target.value)}
           rows={6}
-          className="manuscript mt-2 w-full rounded-sm border border-line bg-paper p-3 text-ink"
+          className="desk-input manuscript mt-2 w-full p-3 text-ink"
           placeholder="粘贴后点「使用这段文字」。它不会自动发给模型。"
         />
         <Button type="button" variant="quiet" className="mt-2" onClick={onUsePaste}>
@@ -86,7 +86,7 @@ export function IntakeWell({
       </div>
       {extra}
       {error ? (
-        <p role="alert" className="mt-4 border-l-4 border-ink bg-sunk px-3 py-2 text-ink">
+        <p role="alert" className="mt-4 rounded-xl border border-line bg-sunk/80 px-3 py-2 text-ink">
           {error}
         </p>
       ) : null}

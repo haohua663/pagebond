@@ -151,6 +151,20 @@ export function applyLockedTerms(blocks: DocumentBlock[], terms: string[]): Docu
   });
 }
 
+
+/** Fill missing ids from original and restore original order (low-risk integrity repair). */
+export function alignParagraphs(
+  original: DocumentBlock[],
+  output: ParagraphRewrite[],
+): ParagraphRewrite[] {
+  const byId = new Map(output.map((item) => [item.id, item]));
+  return original.map((block) => {
+    const hit = byId.get(block.id);
+    if (hit && hit.text.trim()) return { id: block.id, text: hit.text, reason: hit.reason };
+    return { id: block.id, text: block.text, reason: hit?.reason || "未返回，保留原文" };
+  });
+}
+
 export function checkRewriteWithTerms(
   original: DocumentBlock[],
   output: ParagraphRewrite[],

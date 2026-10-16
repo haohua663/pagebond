@@ -1,6 +1,6 @@
-import { checkRewriteWithTerms } from "@/lib/analysis/validate";
-import { asBlocks, asOptions, credentialOrNull, noKeyBody, tooLong, tooLongMessage } from "@/lib/api/respond";
-import { DEFAULT_MODEL } from "@/lib/limits";
+import { alignParagraphs, checkRewriteWithTerms } from "@/lib/analysis/validate";
+import { failWithGate, jsonWithGate, openModelGate } from "@/lib/api/guard";
+import { asBlocks, asOptions, tooLong, tooLongMessage } from "@/lib/api/respond";
 import { rewriteMessages } from "@/lib/prompts/revise";
 import { completeJson } from "@/lib/providers/openrouter";
 import { rewriteJsonSchema, rewriteSchema } from "@/lib/schemas/outputs";
@@ -14,10 +14,12 @@ export async function POST(request: Request) {
   const blocks = asBlocks(body?.blocks);
   if (!blocks) return Response.json({ ok: false, code: "BAD_REQUEST", message: "没有可改写的段落。" }, { status: 400 });
   if (tooLong(blocks)) return Response.json({ ok: false, code: "TOO_LONG", message: tooLongMessage() }, { status: 413 });
-  const credential = credentialOrNull(request);
-  if (!credential.key) return Response.json(noKeyBody(), { status: 401 });
+  const requestedModel = typeof body?.model === "string" ? body.model : null;
+  const gated = openModelGate(request, "daily", requestedModel);
+  if (!gated.ok) return gated.response;
+  const { ctx } = gated;
   const options = asOptions(body?.options);
-  const model = typeof body?.model === "string" && body.model.trim() ? body.model.trim() : DEFAULT_MODEL;
+  const model = ctx.model;
   let repairNotes: string[] = [];
   let lastCheck = checkRewriteWithTerms(blocks, [], options.lockedTerms);
   let usedModel = model;
@@ -27,13 +29,17 @@ export async function POST(request: Request) {
     const messages = rewriteMessages(blocks, options, repairNotes);
     const result = await completeJson({
       model,
-      key: credential.key,
+      key: ctx.key,
+      baseUrl: ctx.baseUrl,
+      enableThinking: ctx.enableThinking,
       schemaName: "pagebond_rewrite",
       schema: rewriteJsonSchema,
       system: messages.system,
       user: messages.user,
     });
-    if (!result.ok) return Response.json(result, { status: result.code === "TIMEOUT" ? 504 : 502 });
+    if (!result.ok) {
+      return failWithGate(ctx, result, result.code === "TIMEOUT" ? 504 : 502);
+    }
     usedModel = result.model;
     usage = result.usage;
     const parsed = rewriteSchema.safeParse(result.json);
@@ -41,19 +47,24 @@ export async function POST(request: Request) {
       repairNotes = ["返回的结构无法解析"];
       continue;
     }
-    lastCheck = checkRewriteWithTerms(blocks, parsed.data.paragraphs, options.lockedTerms);
+    const aligned = alignParagraphs(blocks, parsed.data.paragraphs);
+    lastCheck = checkRewriteWithTerms(blocks, aligned, options.lockedTerms);
     if (lastCheck.integrity === "passed") break;
     repairNotes = lastCheck.issues;
   }
 
-  return Response.json({
-    ok: true,
-    keySource: credential.source,
-    model: usedModel,
+  return jsonWithGate(
+    ctx,
+    {
+      ok: true,
+      model: usedModel,
+      usage,
+      integrity: lastCheck.integrity,
+      issues: lastCheck.issues,
+      checks: lastCheck.blocks,
+      official: lastCheck.integrity === "passed",
+    },
+    undefined,
     usage,
-    integrity: lastCheck.integrity,
-    issues: lastCheck.issues,
-    checks: lastCheck.blocks,
-    official: lastCheck.integrity === "passed",
-  });
+  );
 }

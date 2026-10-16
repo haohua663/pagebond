@@ -1,5 +1,5 @@
-import { DeskApp } from "@/components/desk/desk-app";
+import { HomeShell } from "@/components/landing/home-shell";
 
 export default function HomePage() {
-  return <DeskApp />;
+  return <HomeShell />;
 }

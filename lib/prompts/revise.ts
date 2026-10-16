@@ -68,6 +68,33 @@ export function rewriteMessages(
   };
 }
 
+export function humanizeMessages(
+  blocks: DocumentBlock[],
+  options: IntakeOptions,
+  repairNotes: string[],
+) {
+  const text = blocks.map((block) => block.text).join("\n");
+  return {
+    system: [
+      UNTRUSTED_PREFACE,
+      structureRules(options.articleType),
+      languageRules(options.language, text),
+      "这是「人话化 / 行文自然度」优化，不是查重、也不是绕过检测器。",
+      "目标：降低机械感与套话，让学术中文或英文学术行文更自然、像作者本人写的。",
+      "只调整表达与句式节奏；研究问题、结论范围、论证方向保持不变。",
+      "只返回你负责的这些段落，编号必须与输入一致，不能合并、拆开或调换。",
+      "公式、直接引语、数字与单位、引用标记、参考文献和锁定段落必须原样保留。",
+      "已经清楚自然的句子不必为了改而改。做不到就原样返回该段。不要补写文献和数据。",
+      "不要输出查重率或 AI 检测率，也不要声称能降低检测分数。",
+      repairNotes.length ? `上一次这些检查没有通过，只修这些问题：${repairNotes.join("；")}` : "",
+      promptStamp(),
+    ]
+      .filter(Boolean)
+      .join("\n"),
+    user: documentBlock(blockPayload(blocks)),
+  };
+}
+
 export function analyzeMessages(original: DocumentBlock[], current: DocumentBlock[], options: IntakeOptions) {
   const text = current.map((block) => block.text).join("\n");
   return {

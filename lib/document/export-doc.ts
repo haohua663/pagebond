@@ -7,7 +7,6 @@ export function exportMarkdown(
   options: {
     kind: ExportKind;
     unsupported?: string[];
-    includeAiNote?: boolean;
   },
 ): string {
   const banner =
@@ -27,14 +26,6 @@ export function exportMarkdown(
     parts.push("", "## 未处理清单", "", ...options.unsupported.map((item) => `- ${item}`));
     parts.unshift("> 导出称为正文修改稿。下面这些对象没有按原格式处理。", "");
   }
-  if (options.includeAiNote) {
-    parts.push(
-      "",
-      "## 人工智能使用说明",
-      "",
-      "作者确认：表达层面的建议来自 pagebond 调用的模型。研究事实、文献和最终措辞由作者负责。这一节是附页，不自动进入正文。",
-    );
-  }
   parts.push("", "未进行外部查重／AI 检测。");
   return parts.join("\n");
 }
@@ -49,8 +40,17 @@ export function textsInOrder(markdown: string, blocks: DocumentBlock[]): boolean
   return true;
 }
 
+async function packDocx(title: string, children: unknown[]): Promise<Blob> {
+  const { Document, Packer } = await import("docx");
+  const doc = new Document({
+    title,
+    sections: [{ children: children as never[] }],
+  });
+  return Packer.toBlob(doc);
+}
+
 export async function exportDocxBlob(blocks: DocumentBlock[], title: string): Promise<Blob> {
-  const { Document, HeadingLevel, Packer, Paragraph, TextRun } = await import("docx");
+  const { HeadingLevel, Paragraph, TextRun } = await import("docx");
   const children = blocks.map((block) => {
     if (block.kind === "heading") {
       const level =
@@ -67,9 +67,19 @@ export async function exportDocxBlob(blocks: DocumentBlock[], title: string): Pr
       bullet: block.kind === "list" ? { level: 0 } : undefined,
     });
   });
-  const doc = new Document({
-    title,
-    sections: [{ children }],
-  });
-  return Packer.toBlob(doc);
+  return packDocx(title, children);
+}
+
+/** Plain-paragraph Word export for diagnosis / analysis text. */
+export async function exportAnalysisDocxBlob(
+  title: string,
+  paragraphs: string[],
+): Promise<Blob> {
+  const { Paragraph, HeadingLevel } = await import("docx");
+  const children = [
+    new Paragraph({ text: title, heading: HeadingLevel.HEADING_1 }),
+    ...paragraphs.filter((line) => line.trim()).map((line) => new Paragraph({ text: line })),
+    new Paragraph({ text: "未进行外部查重／AI 检测。" }),
+  ];
+  return packDocx(title, children);
 }

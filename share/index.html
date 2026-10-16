@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="PAGEBOND / 页缘 — draft, revise, archive. Soft desk for your words." />
+  <title>PAGEBOND · 页缘</title>
+  <style>
+    :root {
+      --paper: #f4efe6;
+      --paper-deep: #ebe3d6;
+      --ink: #3d3429;
+      --ink-soft: #6b5e4e;
+      --accent: #8b6f4e;
+      --line: #d4c7b4;
+      --card: #faf7f1;
+      --shadow: 0 12px 40px rgba(61, 52, 41, 0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; }
+    body {
+      min-height: 100%;
+      font-family: "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse at 20% 0%, #f8f3ea 0%, transparent 50%),
+        radial-gradient(ellipse at 90% 80%, #e8dfd0 0%, transparent 45%),
+        var(--paper);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.25rem;
+      line-height: 1.6;
+    }
+    .desk {
+      width: 100%;
+      max-width: 28rem;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 1.25rem;
+      box-shadow: var(--shadow);
+      padding: 2.5rem 2rem 2rem;
+      position: relative;
+    }
+    .desk::before {
+      content: "";
+      position: absolute;
+      top: 0.85rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 2.5rem;
+      height: 0.35rem;
+      background: var(--paper-deep);
+      border-radius: 999px;
+      border: 1px solid var(--line);
+    }
+    .mark {
+      font-size: 0.7rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+    h1 {
+      font-size: clamp(1.75rem, 5vw, 2.15rem);
+      font-weight: 650;
+      letter-spacing: 0.02em;
+      color: var(--ink);
+      margin-bottom: 0.35rem;
+    }
+    h1 span {
+      font-weight: 500;
+      color: var(--ink-soft);
+      font-size: 0.85em;
+    }
+    .tagline {
+      color: var(--ink-soft);
+      font-size: 1rem;
+      margin: 1.25rem 0 1.75rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px dashed var(--line);
+    }
+    .tagline strong {
+      color: var(--ink);
+      font-weight: 600;
+    }
+    .note {
+      font-size: 0.92rem;
+      color: var(--ink-soft);
+      margin-bottom: 1.5rem;
+    }
+    .note em {
+      font-style: normal;
+      color: var(--accent);
+    }
+    .mail {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.9rem;
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.15s ease;
+    }
+    .mail:hover { border-bottom-color: var(--accent); }
+    .foot {
+      margin-top: 2rem;
+      font-size: 0.75rem;
+      color: #9a8b78;
+      letter-spacing: 0.04em;
+    }
+  </style>
+</head>
+<body>
+  <main class="desk">
+    <p class="mark">Coming soon</p>
+    <h1>PAGEBOND <span>/ 页缘</span></h1>
+    <p class="tagline">
+      <strong>起草 · 改写 · 归档</strong><br />
+      Draft, revise, archive — a soft desk for your words.
+    </p>
+    <p class="note">
+      完整应用即将上线（EdgeOne 预览中）。<br />
+      Full app coming soon — EdgeOne preview in progress.
+    </p>
+    <p class="note">
+      欢迎反馈 / Feedback welcome:<br />
+      <a class="mail" href="mailto:haohua663@gmail.com">haohua663@gmail.com</a>
+    </p>
+    <p class="foot">PAGEBOND · 页缘</p>
+  </main>
+</body>
+</html>

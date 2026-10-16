@@ -28,7 +28,7 @@ describe("prompts and credentials", () => {
         model: DEFAULT_MODEL,
         system: "s",
         user: "u",
-        schemaName: "yeyuan_rewrite",
+        schemaName: "pagebond_rewrite",
         schema: { type: "object" },
         key: "secret",
       },

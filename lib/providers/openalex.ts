@@ -102,7 +102,7 @@ export async function searchOpenAlex(
     const response = await fetchImpl(url, {
       headers: {
         Accept: "application/json",
-        "User-Agent": "yeyuan/0.1 (mailto:dev@localhost)",
+        "User-Agent": "pagebond/0.1 (mailto:dev@localhost)",
       },
     });
     if (response.status === 429 || response.status === 402) {

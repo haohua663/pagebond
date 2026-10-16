@@ -93,7 +93,7 @@ async function postOnce(
         Authorization: `Bearer ${request.key}`,
         "Content-Type": "application/json",
         "HTTP-Referer": "http://localhost:4721",
-        "X-OpenRouter-Title": "Yeyuan",
+        "X-OpenRouter-Title": "pagebond",
       },
       body: JSON.stringify(bodyFor(request, structured)),
       signal: controller.signal,

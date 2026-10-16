@@ -49,7 +49,7 @@ export function SettingsScreen({
     try {
       const response = await fetch("/api/credentials/check", {
         method: "POST",
-        headers: { "X-Yeyuan-Session-Key": assessed.key },
+        headers: { "X-Pagebond-Session-Key": assessed.key },
       });
       const data = (await response.json().catch(() => null)) as { ok?: boolean; message?: string; label?: string } | null;
       if (!response.ok || !data?.ok || !data.label) {

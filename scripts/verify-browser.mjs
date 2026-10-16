@@ -1,8 +1,8 @@
 import { mkdirSync } from "node:fs";
 import { chromium } from "playwright-core";
 
-const base = process.env.YEYUAN_URL || "http://127.0.0.1:4721";
-const out = "/tmp/yeyuan-shots";
+const base = process.env.PAGEBOND_URL || process.env.YEYUAN_URL || "http://127.0.0.1:4721";
+const out = "/tmp/pagebond-shots";
 mkdirSync(out, { recursive: true });
 
 const browser = await chromium.launch({

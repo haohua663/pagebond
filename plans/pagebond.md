@@ -1,6 +1,6 @@
 ---
-name: 页缘论文工作台
-overview: 确认开发网页版「页缘」。改稿和起稿都有文档上传入口；改稿上传后自动改写并输出带具体建议的分析结论，起稿上传要求与想法后抽出关键词、主题和可执行框架。提交稿、改后稿和分析内容保存在本机存档板块，可随时再打开。网页验收通过后再封装 Agent Skills。
+name: pagebond 论文工作台
+overview: 确认开发网页版「pagebond」。改稿和起稿都有文档上传入口；改稿上传后自动改写并输出带具体建议的分析结论，起稿上传要求与想法后抽出关键词、主题和可执行框架。提交稿、改后稿和分析内容保存在本机存档板块，可随时再打开。网页验收通过后再封装 Agent Skills。
 todos:
   - id: scaffold-desk
     content: 搭工作台骨架，改稿与起稿各自放上拖拽上传、点击选择和粘贴入口，以及空状态与样例
@@ -21,12 +21,12 @@ todos:
     content: 补导出、密钥缺失、超长、解析失败，并在桌面和手机宽度走通上传、存档和再查看
     status: pending
   - id: agent-skills
-    content: 网页验收通过后，封装 yeyuan-revise 与 yeyuan-conceive
+    content: 网页验收通过后，封装 pagebond-revise 与 pagebond-conceive
     status: pending
 isProject: false
 ---
 
-# 页缘：详细方案
+# pagebond：详细方案
 
 会按这个方案开发。两条模式都有文档上传入口，不是只能粘贴。第一版先做可在浏览器里用完的网页，你验收通过后再做 Agent Skills。
 
@@ -213,4 +213,4 @@ Next.js App Router、TypeScript、Tailwind、shadcn/ui。开发服务用非默�
 
 ## 验收后再做的 Skills
 
-在 [.cursor/skills/yeyuan-revise/SKILL.md](.cursor/skills/yeyuan-revise/SKILL.md) 和 [.cursor/skills/yeyuan-conceive/SKILL.md](.cursor/skills/yeyuan-conceive/SKILL.md) 各写一份技能说明：何时使用、输入是本地文件或粘贴、步骤指向上面三份提示词、禁止编造文献和检测器分数。技能读取用户给出的文件，调用同一 OpenRouter 封装，把改后稿或框架写回用户指定路径。网页未验收前不开始这一步。
+在 [.cursor/skills/pagebond-revise/SKILL.md](.cursor/skills/pagebond-revise/SKILL.md) 和 [.cursor/skills/pagebond-conceive/SKILL.md](.cursor/skills/pagebond-conceive/SKILL.md) 各写一份技能说明：何时使用、输入是本地文件或粘贴、步骤指向上面三份提示词、禁止编造文献和检测器分数。技能读取用户给出的文件，调用同一 OpenRouter 封装，把改后稿或框架写回用户指定路径。网页未验收前不开始这一步。

@@ -119,5 +119,13 @@ describe("backup", () => {
     expect(restored.error).toBeNull();
     expect(restored.records[0].id).toBe("paper-a");
     expect(restored.records[0].rawExtractedText).toBe("原文");
+    expect(backup.app).toBe("pagebond");
+  });
+
+  it("still reads a backup saved under the previous name", () => {
+    const backup = { ...toBackup([record({ id: "paper-b" })]), app: "yeyuan" };
+    const restored = fromBackup(backup);
+    expect(restored.error).toBeNull();
+    expect(restored.records[0].id).toBe("paper-b");
   });
 });

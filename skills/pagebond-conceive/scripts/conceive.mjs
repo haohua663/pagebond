@@ -16,7 +16,7 @@ const inputPath = arg("--input");
 const notesPath = arg("--notes");
 const outputPath = arg("--output");
 const doSearch = process.argv.includes("--search");
-const model = process.env.YEYUAN_MODEL || "~openai/gpt-sol-latest";
+const model = process.env.PAGEBOND_MODEL || process.env.YEYUAN_MODEL || "~openai/gpt-sol-latest";
 
 if (!inputPath && !notesPath) {
   console.error("用法：node scripts/conceive.mjs --input 要求.md --notes 补充.txt --output 框架.md");
@@ -101,7 +101,7 @@ const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
   headers: {
     Authorization: `Bearer ${key}`,
     "Content-Type": "application/json",
-    "X-OpenRouter-Title": "Yeyuan",
+    "X-OpenRouter-Title": "pagebond",
   },
   body: JSON.stringify({
     model,
@@ -110,7 +110,7 @@ const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       { role: "system", content: prompt },
       { role: "user", content: `<document>\n${requirementText}\n\n${notes}\n</document>` },
     ],
-    response_format: { type: "json_schema", json_schema: { name: "yeyuan_outline", strict: true, schema } },
+    response_format: { type: "json_schema", json_schema: { name: "pagebond_outline", strict: true, schema } },
   }),
 });
 
@@ -134,7 +134,7 @@ if (doSearch) {
   for (const query of queries) {
     try {
       const url = `https://api.openalex.org/works?${new URLSearchParams({ search: query, per_page: "5" })}`;
-      const found = await fetch(url, { headers: { "User-Agent": "yeyuan/0.1 (mailto:dev@localhost)" } });
+      const found = await fetch(url, { headers: { "User-Agent": "pagebond/0.1 (mailto:dev@localhost)" } });
       if (found.status === 429) {
         blocks.push(`- ${query}：额度不足`);
         continue;

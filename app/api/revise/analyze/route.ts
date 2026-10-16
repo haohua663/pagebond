@@ -40,7 +40,7 @@ export async function POST(request: Request) {
   const result = await completeJson({
     model,
     key: credential.key,
-    schemaName: "yeyuan_analyze",
+    schemaName: "pagebond_analyze",
     schema: analyzeJsonSchema,
     system: messages.system,
     user: messages.user,

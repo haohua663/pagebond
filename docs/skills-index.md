@@ -1,6 +1,6 @@
 # Skills index
 
-The 页缘 plan is still waiting for Hao’s confirmation. These three skills are on file only. Their workflows were not run.
+The pagebond plan is still waiting for Hao’s confirmation. These three skills are on file only. Their workflows were not run.
 
 ## frontend-design
 
@@ -24,6 +24,6 @@ The 页缘 plan is still waiting for Hao’s confirmation. These three skills ar
 - Source: https://github.com/anthropics/skills
 - Files: `/cursor/stores/self/docs/skill-creator/` (`SKILL.md`, `LICENSE.txt`, `agents/`, `assets/`, `eval-viewer/`, `references/`, `scripts/`)
 - What it is for: draft a new skill, then test and revise it.
-- When to use: only after the webpage is accepted, to create yeyuan-revise and yeyuan-conceive.
+- When to use: only after the webpage is accepted, to create pagebond-revise and pagebond-conceive.
 
 Hao said perplexity-search does not need to be downloaded, so it was left out.

@@ -12,7 +12,7 @@ export function resolveCredential(sessionKey: string | null | undefined, serverK
 }
 
 export function readSessionKey(request: Request): string | null {
-  const header = request.headers.get("x-yeyuan-session-key");
+  const header = request.headers.get("x-pagebond-session-key");
   if (!header?.trim()) return null;
   return header.trim();
 }

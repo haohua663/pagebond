@@ -57,7 +57,7 @@ export async function parsePdf(data: ArrayBuffer | Uint8Array): Promise<{ text: 
     const emptyPages = pageTexts.filter((page) => page.trim().length < 15).length;
     const text = pageTexts.join("\n\n");
     if (pages > 1 && emptyPages >= Math.ceil(pages / 2)) {
-      return { text: `${text}\n\n[[yeyuan:missing-pages:${emptyPages}/${pages}]]`, pages };
+      return { text: `${text}\n\n[[pagebond:missing-pages:${emptyPages}/${pages}]]`, pages };
     }
     return { text, pages };
   } catch (error) {
@@ -70,8 +70,8 @@ export async function parsePdf(data: ArrayBuffer | Uint8Array): Promise<{ text: 
 }
 
 export function classifyExtractedPdf(text: string, pages: number): ParsedDocument {
-  const missing = /\[\[yeyuan:missing-pages:(\d+)\/(\d+)\]\]/.exec(text);
-  const clean = text.replace(/\[\[yeyuan:missing-pages:\d+\/\d+\]\]/g, "").trim();
+  const missing = /\[\[(?:pagebond|yeyuan):missing-pages:(\d+)\/(\d+)\]\]/.exec(text);
+  const clean = text.replace(/\[\[(?:pagebond|yeyuan):missing-pages:\d+\/\d+\]\]/g, "").trim();
   const chars = [...clean.replace(/\s/g, "")].length;
   let document = parseProse(clean);
   if (pages >= 1 && chars < Math.max(20, pages * 15)) {

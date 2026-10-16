@@ -2,8 +2,10 @@ import type { PaperRecord } from "@/lib/storage/types";
 
 const SECRET_KEYS = ["key", "apiKey", "api_key", "OPENROUTER_API_KEY", "authorization", "sessionKey"];
 
+const BACKUP_APPS = new Set(["pagebond", "yeyuan"]);
+
 export interface BackupFile {
-  app: "yeyuan";
+  app: "pagebond";
   version: 1;
   exportedAt: string;
   records: PaperRecord[];
@@ -22,7 +24,7 @@ function scrub(value: unknown): unknown {
 
 export function toBackup(records: PaperRecord[], now = new Date()): BackupFile {
   return {
-    app: "yeyuan",
+    app: "pagebond",
     version: 1,
     exportedAt: now.toISOString(),
     records: scrub(records) as PaperRecord[],
@@ -32,7 +34,7 @@ export function toBackup(records: PaperRecord[], now = new Date()): BackupFile {
 export function fromBackup(input: unknown): { records: PaperRecord[]; error: string | null } {
   if (!input || typeof input !== "object") return { records: [], error: "备份不是可识别的文件。" };
   const file = input as Partial<BackupFile>;
-  if (file.app !== "yeyuan" || file.version !== 1 || !Array.isArray(file.records)) {
+  if (!BACKUP_APPS.has(String(file.app)) || file.version !== 1 || !Array.isArray(file.records)) {
     return { records: [], error: "备份版本无法读取。" };
   }
   const records = file.records.filter((record) => record && typeof record.id === "string" && record.mode);

@@ -137,7 +137,7 @@ function freshConceive(): ConceiveState {
 
 async function postJson(url: string, body: unknown, sessionKey: string) {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (sessionKey.trim()) headers["X-Yeyuan-Session-Key"] = sessionKey.trim();
+  if (sessionKey.trim()) headers["X-Pagebond-Session-Key"] = sessionKey.trim();
   const response = await fetch(url, { method: "POST", headers, body: JSON.stringify(body) });
   return (await response.json().catch(() => ({ ok: false, message: "响应无法读取。" }))) as {
     ok: boolean;
@@ -169,7 +169,7 @@ export function DeskApp() {
   conceiveRef.current = conceive;
 
   useEffect(() => {
-    const stored = window.localStorage.getItem("yeyuan.model");
+    const stored = window.localStorage.getItem("pagebond.model") || window.localStorage.getItem("yeyuan.model");
     if (stored?.trim()) setModel(stored.trim());
     void fetch("/api/health")
       .then((response) => response.json())
@@ -221,7 +221,7 @@ export function DeskApp() {
       else setConceive((current) => ({ ...current, saveState: "已保存" }));
       await refreshArchive();
     } catch {
-      downloadText(`${record.title || "页缘"}-尚未保存.json`, JSON.stringify(toBackup([record]), null, 2), "application/json");
+      downloadText(`${record.title || "pagebond"}-尚未保存.json`, JSON.stringify(toBackup([record]), null, 2), "application/json");
       if (which === "revise") setRevise((current) => ({ ...current, saveState: "尚未保存", modelError: "存档写入失败。已下载备份，当前页面还留着。" }));
       else setConceive((current) => ({ ...current, saveState: "尚未保存", modelError: "存档写入失败。已下载备份，当前页面还留着。" }));
     }
@@ -763,9 +763,9 @@ export function DeskApp() {
       </a>
       <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-line bg-desk/95 px-4 py-3">
         <span className="grid size-9 place-items-center rounded-lg bg-lime text-sm font-medium text-ink" aria-hidden="true">
-          页
+          P
         </span>
-        <p className="text-lg font-medium tracking-tight">页缘</p>
+        <p className="text-base font-medium tracking-tight sm:text-lg">pagebond</p>
         {settingsOpen ? (
           <p className="hidden text-sm text-ink-soft sm:block">核对通过后，点开始工作。</p>
         ) : revise.confirmed || conceive.brief || revise.running || conceive.running ? (
@@ -854,7 +854,7 @@ export function DeskApp() {
               sessionLabel={sessionLabel}
               onModel={(value) => {
                 setModel(value);
-                window.localStorage.setItem("yeyuan.model", value);
+                window.localStorage.setItem("pagebond.model", value);
                 generation.current += 1;
               }}
               onAdded={(key, label) => {
@@ -926,7 +926,7 @@ export function DeskApp() {
                 if (revise.paperId === id) setRevise((current) => ({ ...current, paperId: "" }));
                 await refreshArchive();
               }}
-              onExport={() => downloadText("页缘备份.json", JSON.stringify(toBackup(records), null, 2), "application/json")}
+              onExport={() => downloadText("pagebond-备份.json", JSON.stringify(toBackup(records), null, 2), "application/json")}
               onImport={async (file) => {
                 const parsed = fromBackup(JSON.parse(await file.text()));
                 if (parsed.error) {

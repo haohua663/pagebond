@@ -1,10 +1,10 @@
 ---
-name: yeyuan-conceive
-description: 从论文要求、开题或想法整理出关键词、方向和章节框架。用户提到起稿、开题、写作框架、论文要求或页缘构思时使用。先整理要求，再出框架。文献只发送检索词，不编造题名、作者、年份或 DOI。
+name: pagebond-conceive
+description: 从论文要求、开题或想法整理出关键词、方向和章节框架。用户提到起稿、开题、写作框架、论文要求或 pagebond 构思时使用。先整理要求，再出框架。文献只发送检索词，不编造题名、作者、年份或 DOI。
 compatibility: 需要 Node.js 18+。模型调用需要环境变量 OPENROUTER_API_KEY。OpenAlex 可不填密钥。不依赖固定的技能安装目录。
 ---
 
-# 页缘起稿
+# pagebond 起稿
 
 起稿不写整篇论文。没有密钥时只做本地整理，并标明未调用模型。
 

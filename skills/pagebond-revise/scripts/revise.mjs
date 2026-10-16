@@ -15,7 +15,7 @@ function arg(name, fallback = "") {
 const inputPath = arg("--input");
 const outputPath = arg("--output");
 const language = arg("--language", "zh");
-const model = process.env.YEYUAN_MODEL || "~openai/gpt-sol-latest";
+const model = process.env.PAGEBOND_MODEL || process.env.YEYUAN_MODEL || "~openai/gpt-sol-latest";
 
 if (!inputPath) {
   console.error("用法：node scripts/revise.mjs --input 原稿.md --output 建议修改稿.md --language zh");
@@ -53,7 +53,7 @@ const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
   headers: {
     Authorization: `Bearer ${key}`,
     "Content-Type": "application/json",
-    "X-OpenRouter-Title": "Yeyuan",
+    "X-OpenRouter-Title": "pagebond",
   },
   body: JSON.stringify({
     model,
@@ -62,7 +62,7 @@ const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       { role: "system", content: `${prompt}\n语言：${language === "en" ? "英文，不要使用中文 humanizer 规则。" : "中文，使用上面的中文约束。"}` },
       { role: "user", content: `<document>\n${blocks.map((block) => `[${block.id}]\n${block.text}`).join("\n\n")}\n</document>` },
     ],
-    response_format: { type: "json_schema", json_schema: { name: "yeyuan_rewrite", strict: true, schema } },
+    response_format: { type: "json_schema", json_schema: { name: "pagebond_rewrite", strict: true, schema } },
   }),
 });
 

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 export function IntakeWell({
   testId,
   title,
-  detail,
+  detail = "",
   fileName,
   error,
   paste,
@@ -17,7 +17,7 @@ export function IntakeWell({
 }: {
   testId: string;
   title: string;
-  detail: string;
+  detail?: string;
   fileName: string;
   error: string | null;
   paste: string;
@@ -46,7 +46,7 @@ export function IntakeWell({
         }}
       >
         <p className="text-xl text-ink">{title}</p>
-        <p className="mx-auto mt-2 max-w-md text-ink-soft">{detail}</p>
+        {detail ? <p className="mx-auto mt-2 max-w-md text-ink-soft">{detail}</p> : null}
         <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
           <label htmlFor={inputId} className="inline-flex min-h-11 cursor-pointer items-center rounded-xl bg-ink px-5 text-paper shadow-sm">
             选择文件
@@ -78,7 +78,7 @@ export function IntakeWell({
           onChange={(event) => onPaste(event.target.value)}
           rows={6}
           className="desk-input manuscript mt-2 w-full p-3 text-ink"
-          placeholder="粘贴后点「使用这段文字」。它不会自动发给模型。"
+          placeholder=""
         />
         <Button type="button" variant="quiet" className="mt-2" onClick={onUsePaste}>
           使用这段文字

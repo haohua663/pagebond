@@ -21,7 +21,6 @@ export function ArchivePanel({
   return (
     <section data-testid="archive-panel" className="desk-card p-4 sm:p-6">
       <h2 className="text-2xl">存档</h2>
-      <p className="mt-2 max-w-xl text-ink-soft">存在这台浏览器里。打开一条只查看，不调用模型。备份不含密钥。</p>
       {reminder ? <p className="desk-callout mt-3 px-3 py-2 text-sm">{reminder}</p> : null}
       <div className="mt-4 flex flex-wrap gap-2">
         <Button type="button" variant="quiet" onClick={onExport}>
@@ -42,9 +41,7 @@ export function ArchivePanel({
         </label>
       </div>
       {records.length === 0 ? (
-        <p data-testid="archive-empty" className="mt-8 text-ink">
-          还没有存档。确认一份输入之后，它会出现在这里。刷新后可以再打开。
-        </p>
+        <p data-testid="archive-empty" className="hidden" />
       ) : (
         <ul className="mt-6 divide-y divide-line">
           {records.map((record) => (

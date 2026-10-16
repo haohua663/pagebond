@@ -24,7 +24,6 @@ export function SuggestionRail({
     <aside className="desk-card p-5" aria-label="建议">
       <h2 className="text-base font-medium tracking-tight">页边建议</h2>
       {notice ? <p className="mt-3 rounded-xl border border-line bg-desk/70 px-3 py-2 text-sm text-ink">{notice}</p> : null}
-      {suggestions.length === 0 ? <p className="mt-4 text-ink-soft">确认文稿之后，能定位的问题会出现在这里。</p> : null}
       <ul className="mt-4 space-y-4">
         {suggestions.map((suggestion) => (
           <li key={suggestion.id} className="rounded-xl border border-line/80 bg-desk/40 px-3 py-3">
@@ -37,7 +36,6 @@ export function SuggestionRail({
             </button>
             <p className="mt-2 text-ink">{suggestion.problem}</p>
             <p className="mt-1 text-ink-soft">{suggestion.change}</p>
-            <p className="mt-1 text-sm text-ink-soft">需要核对：{suggestion.verify}</p>
           </li>
         ))}
       </ul>

@@ -21,12 +21,20 @@ export function MissingKeyLink({ message, onOpen }: { message: string; onOpen: (
   );
 }
 
+export type PlatformQuota = {
+  dailyRequestsRemaining: number;
+  dailyRequestLimit: number;
+  dailyTokensRemaining: number | null;
+  dailyTokenLimit: number;
+};
+
 export function SettingsScreen({
   model: _model,
   baseUrl,
   keySource,
   sessionLabel,
   routes,
+  quota,
   onModel: _onModel,
   onBaseUrl: _onBaseUrl,
   onAdded,
@@ -38,6 +46,7 @@ export function SettingsScreen({
   keySource: KeySource;
   sessionLabel: string | null;
   routes?: RouteStatus | null;
+  quota?: PlatformQuota | null;
   onModel: (value: string) => void;
   onBaseUrl: (value: string) => void;
   onAdded: (key: string, label: string) => void;
@@ -47,6 +56,8 @@ export function SettingsScreen({
   void _model;
   void _onModel;
   void _onBaseUrl;
+  void routes;
+  void quota;
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -89,36 +100,23 @@ export function SettingsScreen({
     }
   }
 
+  const statusText =
+    keySource === "session"
+      ? `这次会话已添加${sessionLabel ? `：${sessionLabel}` : ""}。它优先于服务端密钥。`
+      : keySource === "server"
+        ? ""
+        : "还没有可用密钥。可在此添加，或由部署方配置";
   return (
     <div className="space-y-4" data-testid="settings-screen">
       <section className="desk-card relative overflow-hidden p-4 sm:p-6 before:absolute before:inset-y-4 before:left-0 before:w-1 before:rounded-full before:bg-lime">
         <h1 className="text-2xl font-medium tracking-tight">API 密钥</h1>
-        <p className="mt-2 max-w-xl text-ink-soft">
-          兼容 OpenAI Chat Completions 的接口。核对通过后留在这次页面会话的内存里，不写入浏览器存储，也不进存档。刷新后需要再添加。
-        </p>
-        <p className="mt-4 text-ink" data-testid="api-key-status">
-          {keySource === "session"
-            ? `这次会话已添加${sessionLabel ? `：${sessionLabel}` : ""}。它优先于服务端密钥。`
-            : keySource === "server"
-              ? "服务端已配置平台密钥，可以直接开始。若你另填一把会话密钥，会优先用你的（不占平台日额度）。"
-              : "还没有可用密钥。可在此添加，或由部署方配置"}
-        </p>
-        {routes ? (
-          <ul className="mt-3 max-w-xl space-y-1 text-sm text-ink-soft" data-testid="route-status">
-            <li>
-              日常（改写／人话化／框架）：{routes.daily?.label || "日常 · Qwen3.7-Plus"}
-              {routes.daily?.keyConfigured ? " · 已配置" : " · 未配置钥匙"}
-              {routes.daily?.model ? ` · ${routes.daily.model}` : ""}
-            </li>
-            <li>
-              深度（诊断与分析）：{routes.deep?.label || "深度 · DeepSeek-V4-Pro"}
-              {routes.deep?.keyConfigured ? " · 已配置" : " · 未配置钥匙"}
-              {routes.deep?.model ? ` · ${routes.deep.model}` : ""}
-            </li>
-          </ul>
+        {statusText ? (
+          <p className="mt-4 text-ink" data-testid="api-key-status">
+            {statusText}
+          </p>
         ) : null}
         <label className="mt-4 block max-w-xl" htmlFor="api-key-draft">
-          API 密钥（会话 BYOK）
+          <span className="sr-only">API 密钥</span>
           <input
             id="api-key-draft"
             data-testid="api-key-input"
@@ -126,7 +124,7 @@ export function SettingsScreen({
             autoComplete="off"
             autoFocus
             spellCheck={false}
-            className="desk-input mt-1 w-full bg-desk p-3"
+            className="desk-input w-full bg-desk p-3"
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             onKeyDown={(event) => {

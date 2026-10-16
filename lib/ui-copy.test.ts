@@ -97,7 +97,7 @@ describe("interface copy", () => {
 
   it("shows session-key and no-bypass notes beside settings", () => {
     const deskSrc = readFileSync("components/desk/desk-app.tsx", "utf8");
-    expect(deskSrc).toMatch(/密钥只留在这次会话里。存档和备份都不含密钥/);
+    expect(deskSrc).toMatch(/密钥只留在这次会话里。/);
     expect(deskSrc).toMatch(/密钥只留在这次会话里[\s\S]*未做查重；不绕过检测/);
     expect(deskSrc).not.toMatch(/data-testid="revise-disclaimer"/);
   });

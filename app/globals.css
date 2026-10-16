@@ -91,6 +91,12 @@ body {
   }
 }
 
+@media (min-width: 1024px) {
+  .desk-grid.desk-grid-stretch {
+    align-items: stretch;
+  }
+}
+
 @media (min-width: 1440px) {
   .desk-grid {
     grid-template-columns: 228px minmax(0, 46rem) 328px;

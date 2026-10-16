@@ -327,7 +327,7 @@ export function DeskApp() {
     keySource === "session"
       ? "这次用你添加的会话密钥，不会被服务端密钥覆盖。"
       : keySource === "server"
-        ? "服务端已配置平台密钥，浏览器不会接触到密钥。"
+        ? ""
         : "还没有可用密钥。可在设置里添加，或由部署方配置";
   const needsKey = keySource === "none";
 
@@ -1150,38 +1150,29 @@ export function DeskApp() {
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:z-10 focus:bg-paper focus:p-3">
         跳到正文
       </a>
-      <header className="sticky top-0 z-20 border-b border-line/70 bg-desk/80 px-4 py-3 backdrop-blur-md">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="ml-auto flex items-center gap-2">
-            {revise.running || conceive.running ? (
-              <button
-                type="button"
-                className="min-h-11 cursor-pointer rounded-xl px-3 text-sm text-ink hover:bg-sunk"
-                onClick={() => {
-                  cancelRevise.current = true;
-                  generation.current += 1;
-                }}
-              >
-                停止
-              </button>
-            ) : null}
+      {revise.running || conceive.running ? (
+        <header className="sticky top-0 z-20 border-b border-line/70 bg-desk/80 px-4 py-3 backdrop-blur-md">
+          <div className="flex items-center justify-end gap-2">
             <button
               type="button"
-              className="min-h-11 cursor-pointer rounded-xl px-3 text-sm text-ink-soft hover:bg-sunk hover:text-ink lg:hidden"
-              onClick={() => setSuggestionsOpen((value) => !value)}
+              className="min-h-11 cursor-pointer rounded-xl px-3 text-sm text-ink hover:bg-sunk"
+              onClick={() => {
+                cancelRevise.current = true;
+                generation.current += 1;
+              }}
             >
-              {suggestionsOpen ? "收起建议" : "建议"}
+              停止
             </button>
           </div>
-        </div>
-      </header>
-      <div className="desk-grid">
+        </header>
+      ) : null}
+      <div className={`desk-grid${settingsOpen ? " desk-grid-stretch" : ""}`}>
         <nav aria-label="模式" className="flex gap-2 lg:flex-col">
           {(
             [
               ["revise", "改稿", revise.confirmed ? "1" : ""],
               ["conceive", "起稿", conceive.brief ? "1" : ""],
-              ["archive", "存档", String(records.length)],
+              ["archive", "存档", ""],
             ] as const
           ).map(([id, label, count]) => (
             <button
@@ -1204,19 +1195,6 @@ export function DeskApp() {
             {needsKey ? <span className="desk-chip-dot" aria-hidden /> : null}
             <span>{keyLabel}</span>
           </p>
-          {routeStatus ? (
-            <p className="mt-2 hidden text-sm text-ink-soft lg:block" data-testid="model-route-label">
-              日常 {routeStatus.daily?.keyConfigured ? "Qwen" : "未配"} · 深度 {routeStatus.deep?.keyConfigured ? "DeepSeek" : "未配"}
-            </p>
-          ) : null}
-          {keySource === "server" && quota ? (
-            <p className="mt-2 hidden text-sm text-ink-soft lg:block" data-testid="platform-quota">
-              今日平台额度还剩 {quota.dailyRequestsRemaining}/{quota.dailyRequestLimit} 次
-              {quota.dailyTokenLimit > 0 && quota.dailyTokensRemaining !== null
-                ? ` · token ${quota.dailyTokensRemaining.toLocaleString()}`
-                : ""}
-            </p>
-          ) : null}
           {showReviseWork && revise.confirmed ? (
             <div className="mt-4 hidden lg:block">
               <p className="text-sm text-ink-soft">目录</p>
@@ -1244,6 +1222,7 @@ export function DeskApp() {
               keySource={keySource}
               sessionLabel={sessionLabel}
               routes={routeStatus}
+              quota={keySource === "server" ? quota : null}
               onModel={(value) => {
                 setModel(value);
                 window.localStorage.setItem("pagebond.model", value);
@@ -1357,23 +1336,44 @@ export function DeskApp() {
             />
           ) : null}
         </main>
-        <div className={suggestionsOpen ? "block lg:block" : "hidden lg:block"}>
+        <div className={settingsOpen || suggestionsOpen ? "block lg:block" : "hidden lg:block"}>
           {showReviseWork ? (
-                        <SuggestionRail
-              suggestions={revise.suggestions}
-              notice={analysisStale}
-              onOpen={openSuggestion}
-            />
+            revise.confirmed ? (
+              <SuggestionRail
+                suggestions={revise.suggestions}
+                notice={analysisStale}
+                onOpen={openSuggestion}
+              />
+            ) : (
+              <aside className="desk-card p-5">
+                <h2 className="text-lg">改稿</h2>
+                <p className="mt-2 text-ink-soft">文章润色,去AI化</p>
+              </aside>
+            )
           ) : null}
           {showConceiveWork ? <ConceiveRail state={conceive} /> : null}
           {settingsOpen ? (
-            <aside className="desk-card p-5 text-sm text-ink-soft">
-              <p>密钥只留在这次会话里。存档和备份都不含密钥。</p>
-              <p className="mt-2">未做查重；不绕过检测。</p>
-            </aside>
-          ) : null}
-          {mode === "archive" && !settingsOpen ? (
-            <aside className="desk-card p-5 text-sm text-ink-soft">只查看存档时不调用模型，页边也不重新生成。</aside>
+            <div className="flex h-full flex-col justify-between gap-3" data-testid="settings-rail">
+              <aside className="desk-card px-4 py-4 text-sm leading-relaxed text-ink-soft">
+                <p>密钥只留在这次会话里。</p>
+                <p className="mt-2">未做查重；不绕过检测。</p>
+              </aside>
+              {routeStatus || (keySource === "server" && quota) ? (
+                <aside className="desk-card px-4 py-4 text-sm leading-relaxed text-ink-soft">
+                  {routeStatus ? (
+                    <p data-testid="model-route-label">
+                      日常 {routeStatus.daily?.keyConfigured ? "Qwen" : "未配"} · 深度{" "}
+                      {routeStatus.deep?.keyConfigured ? "DeepSeek" : "未配"}
+                    </p>
+                  ) : null}
+                  {keySource === "server" && quota ? (
+                    <p className={`${routeStatus ? "mt-2 " : ""}whitespace-nowrap`} data-testid="platform-quota">
+                      今日平台额度还剩 {quota.dailyRequestsRemaining}/{quota.dailyRequestLimit} 次
+                    </p>
+                  ) : null}
+                </aside>
+              ) : null}
+            </div>
           ) : null}
         </div>
       </div>
@@ -1429,7 +1429,6 @@ function ReviseMain({
         <IntakeWell
           testId="intake-revise"
           title="把已经写好的论文放在这里"
-          detail="先在本地解析。你确认输入版之前，正文不会发给模型。"
           fileName={loaded?.source === "file" ? loaded.fileName : ""}
           error={state.error}
           paste={state.paste}
@@ -1746,7 +1745,6 @@ function ConceiveMain({
         <IntakeWell
           testId="intake-conceive"
           title="把论文要求放在这里"
-          detail="切换到改稿不会清掉这里的内容。"
           fileName=""
           error={state.error}
           paste={state.paste}
@@ -1971,8 +1969,8 @@ function ConceiveRail({ state }: { state: ConceiveState }) {
   return (
     <aside className="desk-card p-5">
       <h2 className="text-lg">起稿</h2>
-      <p className="mt-2 text-ink-soft">先整理要求，再出框架。文献失败不会清掉框架。</p>
-      {state.outline ? <p className="mt-3">{state.outline.sections.length} 节框架在中间。</p> : <p className="mt-3">框架还没有生成。</p>}
+      <p className="mt-2 text-ink-soft">先整理要求，再出框架。</p>
+      {state.outline ? <p className="mt-3">{state.outline.sections.length} 节框架在中间。</p> : null}
     </aside>
   );
 }
@@ -1982,7 +1980,6 @@ function ArchiveReader({ record, onBack }: { record: PaperRecord; onBack: () => 
   const blocks = tab === "current" ? record.currentBlocks || record.confirmed?.blocks || [] : record.confirmed?.blocks || [];
   return (
     <section className="desk-card p-4 sm:p-6" data-testid="archive-reader">
-      <p className="rounded-xl border border-line bg-desk/60 px-3 py-2 text-sm">只查看，不调用模型。</p>
       <div className="mt-3 flex flex-wrap gap-2">
         <Button type="button" variant="quiet" onClick={onBack}>
           返回列表

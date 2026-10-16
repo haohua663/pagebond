@@ -66,24 +66,38 @@ export function HomeShell() {
         className="relative scroll-mt-8 border-t border-line bg-desk"
       >
         <div className="mx-auto flex max-w-7xl items-end justify-between gap-4 px-4 pb-2 pt-8 md:px-8">
-          <div>
-            <p className="text-xs font-medium tracking-[0.16em] text-ink-soft uppercase">
-              Workbench
-            </p>
-            <h2 className="mt-1 text-2xl font-semibold tracking-tight text-ink md:text-3xl">
-              Your desk
-            </h2>
+          <div className="flex items-end gap-3.5">
+            <svg
+              viewBox="0 0 48 36"
+              className="h-11 w-auto shrink-0 text-ink md:h-12"
+              aria-hidden
+              focusable="false"
+            >
+              <rect x="2" y="2" width="10" height="32" rx="5" fill="currentColor" />
+              <rect x="16" y="2" width="10" height="32" rx="5" fill="currentColor" />
+              <g transform="rotate(14 37 18)">
+                <rect x="30" y="2" width="10" height="32" rx="5" fill="currentColor" />
+              </g>
+            </svg>
+            <div>
+              <p className="text-[0.7rem] font-medium tracking-[0.18em] text-ink-soft uppercase md:text-xs">
+                Workbench
+              </p>
+              <h2 className="mt-1 text-3xl font-semibold tracking-tight text-ink md:text-4xl">
+                Your desk
+              </h2>
+            </div>
           </div>
           <button
             type="button"
             data-testid="open-settings-entry"
-            className="hidden min-h-11 cursor-pointer rounded-xl px-3 text-sm text-ink-soft hover:bg-sunk hover:text-ink sm:inline"
+            className="cursor-pointer self-end pb-1 text-sm text-ink-soft hover:text-ink"
             onClick={() => {
               document.getElementById("app")?.scrollIntoView({ behavior: "smooth", block: "start" });
               window.dispatchEvent(new Event("pagebond:open-settings"));
             }}
           >
-            settings
+            Settings
           </button>
         </div>
         <DeskApp />

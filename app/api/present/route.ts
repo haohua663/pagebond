@@ -1,6 +1,6 @@
 import { failWithGate, jsonWithGate, openModelGate } from "@/lib/api/guard";
 import { LIMITS } from "@/lib/limits";
-import { buildDeckHtml } from "@/lib/present/deck-html";
+import { buildDeckHtml, type DeckVisual, type DeckVisualItem } from "@/lib/present/deck-html";
 import { presentMessages, scrubPresentCopy } from "@/lib/prompts/present";
 import { completeJson } from "@/lib/providers/openrouter";
 import { presentJsonSchema, presentSchema } from "@/lib/schemas/outputs";
@@ -18,7 +18,7 @@ function asMinutes(value: unknown): number | null {
   return null;
 }
 
-function scrubVisual(raw: unknown) {
+function scrubVisual(raw: unknown): DeckVisual | undefined {
   if (!raw || typeof raw !== "object") return undefined;
   const v = raw as {
     type?: unknown;
@@ -26,18 +26,17 @@ function scrubVisual(raw: unknown) {
     caption?: unknown;
     items?: unknown;
   };
-  const items = Array.isArray(v.items)
-    ? v.items
-        .map((item) => {
-          if (!item || typeof item !== "object") return null;
-          const row = item as { label?: unknown; value?: unknown };
-          const label = typeof row.label === "string" ? scrubPresentCopy(row.label) : "";
-          if (!label) return null;
-          const value = typeof row.value === "number" && Number.isFinite(row.value) ? row.value : undefined;
-          return { label, value };
-        })
-        .filter((x): x is { label: string; value?: number } => Boolean(x))
-    : [];
+  const items: DeckVisualItem[] = [];
+  if (Array.isArray(v.items)) {
+    for (const item of v.items) {
+      if (!item || typeof item !== "object") continue;
+      const row = item as { label?: unknown; value?: unknown };
+      const label = typeof row.label === "string" ? scrubPresentCopy(row.label) : "";
+      if (!label) continue;
+      const value = typeof row.value === "number" && Number.isFinite(row.value) ? row.value : undefined;
+      items.push({ label, value });
+    }
+  }
   return {
     type: typeof v.type === "string" ? v.type : undefined,
     metric: typeof v.metric === "string" ? scrubPresentCopy(v.metric) : undefined,

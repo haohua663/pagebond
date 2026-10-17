@@ -926,7 +926,7 @@ export function DeskApp() {
       running: true,
       modelError: null,
       error: null,
-      activePanel: "organize",
+      activePanel: "ideate",
       // 整理要求不附带框架；重新整理时收起旧框架，避免看起来像整理结果。
       outline: null,
       literature: [],
@@ -940,7 +940,7 @@ export function DeskApp() {
         ...current,
         running: false,
         brief,
-        activePanel: "organize",
+        activePanel: "ideate",
         outline: null,
         literature: [],
         modelError: reason,
@@ -960,7 +960,7 @@ export function DeskApp() {
         ...current,
         running: false,
         brief,
-        activePanel: "organize",
+        activePanel: "ideate",
         outline: null,
         literature: [],
         modelError: `${data.message || "模型没有完成要求整理。"} 下面这份是本地整理，不是模型结果。`,
@@ -973,14 +973,14 @@ export function DeskApp() {
       brief: data.brief as RequirementsBrief,
       outline: null,
       literature: [],
-      activePanel: "organize",
+      activePanel: "ideate",
       modelError: null,
     }));
   }
 
   async function runOutline() {
     const text = conceive.loaded?.editText || conceive.paste;
-    setConceive((current) => ({ ...current, running: true, activePanel: "outline", modelError: null }));
+    setConceive((current) => ({ ...current, running: true, activePanel: "ideate", modelError: null }));
     const previous = conceive.outline;
     let brief = conceive.brief ?? localRequirements(text, conceive.notes);
     let directionNote: string | null = null;
@@ -996,7 +996,7 @@ export function DeskApp() {
         direction: directionTitle,
         outline,
         queries: outline.literatureQueries.join("\n"),
-        activePanel: "outline",
+        activePanel: "ideate",
         modelError: "还没有可用密钥，已生成本地方向与框架。",
       }));
       scheduleOutlinePanelScroll();
@@ -1046,7 +1046,7 @@ export function DeskApp() {
         direction: directionTitle,
         outline,
         queries: outline.literatureQueries.join("\n"),
-        activePanel: "outline",
+        activePanel: "ideate",
         modelError: [directionNote, outlineNote].filter(Boolean).join(" "),
       }));
       scheduleOutlinePanelScroll();
@@ -1060,7 +1060,7 @@ export function DeskApp() {
       direction: directionTitle,
       outline,
       queries: outline.literatureQueries.join("\n"),
-      activePanel: "outline",
+      activePanel: "ideate",
       modelError: directionNote,
     }));
     scheduleOutlinePanelScroll();

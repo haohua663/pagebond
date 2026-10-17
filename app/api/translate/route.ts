@@ -113,10 +113,11 @@ export async function POST(request: Request) {
         return failWithGate(ctx, result, result.code === "TIMEOUT" ? 504 : 502);
       }
       usedModel = result.model;
-      if (result.usage) {
+      const spent = result.ok ? result.usage : null;
+      if (spent) {
         usage = {
-          promptTokens: (usage?.promptTokens ?? 0) + (result.usage.promptTokens ?? 0),
-          completionTokens: (usage?.completionTokens ?? 0) + (result.usage.completionTokens ?? 0),
+          promptTokens: (usage?.promptTokens ?? 0) + (spent.promptTokens ?? 0),
+          completionTokens: (usage?.completionTokens ?? 0) + (spent.completionTokens ?? 0),
         };
       }
       const parsed = translateSegmentsSchema.safeParse(result.json);

@@ -28,7 +28,7 @@ import { localOutline, localRequirements, type OutlineDraft, type RequirementsBr
 import { acceptPassed, blocksFromChecks, draftBlocks, remapChecksToOriginal, type AcceptState } from "@/lib/workflows/revise";
 import { runRewriteChunks } from "@/lib/workflows/run-revise";
 import type { TaskStatus } from "@/lib/workflows/task";
-import { downloadText, prefersReducedMotion } from "@/lib/utils";
+import { downloadText, newId, prefersReducedMotion } from "@/lib/utils";
 
 type Mode = "revise" | "conceive" | "archive";
 type KeySource = "session" | "server" | "none";
@@ -501,8 +501,8 @@ export function DeskApp() {
       setRevise((current) => ({ ...current, error: "确认稿是空的。" }));
       return;
     }
-    const paperId = revise.paperId || crypto.randomUUID();
-    const nextTask = crypto.randomUUID();
+    const paperId = revise.paperId || newId();
+    const nextTask = newId();
     taskId.current = nextTask;
     generation.current += 1;
     const notes = localStructureNotes(confirmed, revise.options.articleType);
@@ -650,7 +650,7 @@ export function DeskApp() {
       setRevise((current) => ({ ...current, modelError: "超过 4 万字目标上限，没有截断，也没有发送。" }));
       return;
     }
-    const identity = { paperId: revise.paperId, taskId: revise.taskId || crypto.randomUUID(), generation: generation.current };
+    const identity = { paperId: revise.paperId, taskId: revise.taskId || newId(), generation: generation.current };
     taskId.current = identity.taskId;
     cancelRevise.current = false;
     const originalBlocks = revise.confirmed.blocks;
@@ -1042,7 +1042,7 @@ export function DeskApp() {
 
   async function saveConceive(outline = conceive.outline, literature = conceive.literature) {
     const text = conceive.loaded?.editText || conceive.paste;
-    const paperId = conceive.paperId || crypto.randomUUID();
+    const paperId = conceive.paperId || newId();
     const record: PaperRecord = {
       id: paperId,
       createdAt: Date.now(),

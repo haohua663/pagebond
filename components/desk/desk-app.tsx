@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { ArchivePanel } from "@/components/archive/archive-panel";
+import { ComingSoonPanel, HomeCards, type HomeCardId } from "@/components/desk/home-cards";
+import { WorkbenchRail, type RailAction } from "@/components/desk/workbench-rail";
 import { ManuscriptPane } from "@/components/manuscript/manuscript-pane";
 import { MissingKeyLink, SettingsScreen, type RouteStatus } from "@/components/settings/api-key-panel";
 import { SuggestionRail } from "@/components/suggestions/suggestion-rail";
@@ -30,7 +32,8 @@ import { runRewriteChunks } from "@/lib/workflows/run-revise";
 import type { TaskStatus } from "@/lib/workflows/task";
 import { downloadText, newId, prefersReducedMotion } from "@/lib/utils";
 
-type Mode = "revise" | "conceive" | "archive";
+type Mode = "home" | "revise" | "conceive" | "archive" | "translate" | "draw" | "present";
+type WorkMode = "revise" | "conceive";
 type KeySource = "session" | "server" | "none";
 
 
@@ -253,7 +256,7 @@ async function postJson(
 }
 
 export function DeskApp() {
-  const [mode, setMode] = useState<Mode>("revise");
+  const [mode, setMode] = useState<Mode>("home");
   const [revise, setRevise] = useState<ReviseState>(freshRevise);
   const [conceive, setConceive] = useState<ConceiveState>(freshConceive);
   const [records, setRecords] = useState<PaperRecord[]>([]);
@@ -268,7 +271,7 @@ export function DeskApp() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const generation = useRef(1);
-  const workMode = useRef<Mode>("revise");
+  const workMode = useRef<WorkMode>("revise");
   const taskId = useRef("");
   const cancelRevise = useRef(false);
   const reviseRef = useRef(revise);
@@ -1143,8 +1146,64 @@ export function DeskApp() {
       : null;
 
   const viewing = opened && !settingsOpen ? opened : null;
+  const showHome = mode === "home" && !viewing && !settingsOpen;
   const showReviseWork = mode === "revise" && !viewing && !settingsOpen;
   const showConceiveWork = mode === "conceive" && !viewing && !settingsOpen;
+  const showComingSoon =
+    (mode === "translate" || mode === "draw" || mode === "present") && !viewing && !settingsOpen;
+  const comingSoonTitle =
+    mode === "translate" ? "翻译" : mode === "draw" ? "绘图" : mode === "present" ? "演示" : "";
+  const railActive: "home" | "work" | "none" = settingsOpen
+    ? "none"
+    : mode === "home"
+      ? "home"
+      : "work";
+
+  function goHome() {
+    setMode("home");
+    setOpened(null);
+    setSettingsOpen(false);
+    setSuggestionsOpen(false);
+  }
+
+  function selectHomeCard(id: HomeCardId) {
+    setOpened(null);
+    setSettingsOpen(false);
+    setSuggestionsOpen(false);
+    setMode(id);
+    if (id === "revise" || id === "conceive") workMode.current = id;
+  }
+
+  function onRailAction(action: RailAction) {
+    if (action === "home") {
+      goHome();
+      return;
+    }
+    if (action === "settings") {
+      openSettings();
+      setSuggestionsOpen(false);
+      return;
+    }
+    if (action === "suggestions") {
+      setSettingsOpen(false);
+      setSuggestionsOpen((open) => !open);
+      return;
+    }
+    if (action === "back") {
+      if (settingsOpen || suggestionsOpen || mode !== "home") {
+        goHome();
+        return;
+      }
+      if (typeof window !== "undefined") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+      return;
+    }
+    if (action === "user") {
+      openSettings();
+      setSuggestionsOpen(false);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-desk text-ink">
@@ -1167,55 +1226,16 @@ export function DeskApp() {
           </div>
         </header>
       ) : null}
-      <div className={`desk-grid${settingsOpen ? " desk-grid-stretch" : ""}`}>
-        <nav aria-label="模式" className="flex gap-2 lg:flex-col">
-          {(
-            [
-              ["revise", "改稿", revise.confirmed ? "1" : ""],
-              ["conceive", "起稿", conceive.brief ? "1" : ""],
-              ["archive", "存档", ""],
-            ] as const
-          ).map(([id, label, count]) => (
-            <button
-              key={id}
-              type="button"
-              data-testid={`mode-${id}`}
-              aria-pressed={mode === id}
-              className={`desk-nav-pill flex min-h-11 w-auto flex-1 cursor-pointer lg:w-full lg:flex-none items-center justify-between px-4 text-left ${mode === id ? "" : "text-ink-soft hover:bg-paper/70 hover:text-ink"}`}
-              onClick={() => {
-                setMode(id);
-                setOpened(null);
-                setSettingsOpen(false);
-              }}
-            >
-              <span>{label}</span>
-              {count ? <span className="text-sm text-ink-soft">{count}</span> : null}
-            </button>
-          ))}
-          <p className={`mt-4 hidden lg:flex ${needsKey ? "desk-chip" : "text-sm text-ink-soft"}`} data-testid="key-status-label">
-            {needsKey ? <span className="desk-chip-dot" aria-hidden /> : null}
-            <span>{keyLabel}</span>
-          </p>
-          {showReviseWork && revise.confirmed ? (
-            <div className="mt-4 hidden lg:block">
-              <p className="text-sm text-ink-soft">目录</p>
-              <ul className="mt-2 space-y-1">
-                {revise.confirmed.outline.map((item) => (
-                  <li key={item.id}>
-                    <button
-                      type="button"
-                      className="min-h-11 cursor-pointer text-left"
-                      onClick={() => scrollDeskBlock(item.id)}
-                    >
-                      {item.text}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-        </nav>
-        <main id="main" className="min-w-0">
+      <div
+        className={`desk-workbench${settingsOpen ? " desk-workbench-stretch" : ""}${showHome || showComingSoon ? " desk-workbench-home" : ""}`}
+      >
+        <WorkbenchRail
+          active={railActive}
+          suggestionsOpen={suggestionsOpen}
+          settingsOpen={settingsOpen}
+          onAction={onRailAction}
+        />
+        <main id="main" className="min-w-0 flex-1">
           {settingsOpen ? (
             <SettingsScreen
               model={model}
@@ -1248,6 +1268,8 @@ export function DeskApp() {
           {viewing ? (
             <ArchiveReader record={viewing} onBack={() => setOpened(null)} />
           ) : null}
+          {showHome ? <HomeCards onSelect={selectHomeCard} /> : null}
+          {showComingSoon ? <ComingSoonPanel title={comingSoonTitle} /> : null}
           {showReviseWork ? (
             <ReviseMain
               state={revise}
@@ -1337,28 +1359,23 @@ export function DeskApp() {
             />
           ) : null}
         </main>
-        <div className={settingsOpen || suggestionsOpen ? "block lg:block" : "hidden lg:block"}>
-          {showReviseWork ? (
-            revise.confirmed ? (
-              <SuggestionRail
-                suggestions={revise.suggestions}
-                notice={analysisStale}
-                onOpen={openSuggestion}
-              />
-            ) : (
-              <aside className="desk-card p-5">
-                <h2 className="text-lg">改稿</h2>
-                <p className="mt-2 text-ink-soft">文章润色,去AI化</p>
-              </aside>
-            )
+        <div
+          className={
+            settingsOpen || suggestionsOpen || (showReviseWork && revise.confirmed) || showConceiveWork
+              ? "block lg:block"
+              : "hidden"
+          }
+        >
+          {showReviseWork && revise.confirmed ? (
+            <SuggestionRail
+              suggestions={revise.suggestions}
+              notice={analysisStale}
+              onOpen={openSuggestion}
+            />
           ) : null}
           {showConceiveWork ? <ConceiveRail state={conceive} /> : null}
           {settingsOpen ? (
             <div className="flex h-full flex-col justify-between gap-3" data-testid="settings-rail">
-              <aside className="desk-card px-4 py-4 text-sm leading-relaxed text-ink-soft">
-                <p>密钥只留在这次会话里。</p>
-                <p className="mt-2">未做查重；不绕过检测。</p>
-              </aside>
               {routeStatus || (keySource === "server" && quota) ? (
                 <aside className="desk-card px-4 py-4 text-sm leading-relaxed text-ink-soft">
                   {routeStatus ? (
@@ -1375,6 +1392,12 @@ export function DeskApp() {
                 </aside>
               ) : null}
             </div>
+          ) : null}
+          {suggestionsOpen && !(showReviseWork && revise.confirmed) ? (
+            <aside className="desk-card p-5" data-testid="suggestions-empty">
+              <h2 className="text-lg">建议</h2>
+              <p className="mt-2 text-ink-soft">进入改稿并完成诊断后，这里会列出建议。</p>
+            </aside>
           ) : null}
         </div>
       </div>

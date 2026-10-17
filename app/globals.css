@@ -13,12 +13,26 @@
   --font-manuscript: "Songti SC", "STSong", "Noto Serif CJK SC", "Source Han Serif SC", "PMingLiU", "Palatino Linotype", Palatino, serif;
   --animate-scroll: scroll var(--animation-duration, 40s) var(--animation-direction, forwards) linear infinite;
   --shadow-desk: 0 1px 2px rgb(28 28 26 / 0.03), 0 10px 28px rgb(28 28 26 / 0.045);
+  --animate-move: move 5s linear infinite;
+}
+
+@theme inline {
+  --color-background: var(--color-paper);
+  --color-foreground: var(--color-ink);
+  --color-border: var(--color-line);
+  --color-ring: var(--color-ink);
+  --shadow-input: 0 2px 3px -1px rgb(28 28 26 / 0.12), 0 1px 0 rgb(28 28 26 / 0.02), 0 0 0 1px rgb(28 28 26 / 0.08);
 }
 
 @keyframes scroll {
   to {
     transform: translate(calc(-50% - 0.5rem));
   }
+}
+
+@keyframes move {
+  0% { transform: translateX(-200px); }
+  100% { transform: translateX(200px); }
 }
 
 .animate-scroll {
@@ -194,3 +208,45 @@ body {
     radial-gradient(900px 420px at 90% 0%, #ddd6cb 0%, transparent 50%),
     var(--color-desk);
 }
+
+/* Workbench shell — icon rail + main */
+.desk-workbench {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 16px 56px;
+}
+
+@media (min-width: 1024px) {
+  .desk-workbench {
+    flex-direction: row;
+    align-items: start;
+    gap: 24px;
+    padding: 24px 28px 72px;
+  }
+
+  .desk-workbench.desk-workbench-stretch {
+    align-items: stretch;
+  }
+
+  .desk-workbench > main {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .desk-workbench:not(.desk-workbench-home) > div:last-child {
+    width: 308px;
+    flex-shrink: 0;
+  }
+}
+
+@media (min-width: 1440px) {
+  .desk-workbench:not(.desk-workbench-home) > main {
+    max-width: 46rem;
+  }
+}
+
+.workbench-rail {
+  box-shadow: var(--shadow-desk);
+}
+

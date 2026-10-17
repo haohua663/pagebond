@@ -16,8 +16,9 @@ describe("interface copy", () => {
     expect(sources).not.toMatch(/查重率|AI\s*检测率|GPTZero|知网|Turnitin/);
     const ui = files("components").map((file) => readFileSync(file, "utf8")).join("\n");
     expect(ui).not.toMatch(/未进行外部查重／AI 检测/);
-    expect(ui).toMatch(/未做查重；不绕过检测/);
-    expect(sources).toMatch(/不声称.*绕过|不绕过检测/);
+    expect(ui).not.toMatch(/未做查重；不绕过检测/);
+    expect(ui).not.toMatch(/密钥只留在这次会话里/);
+    expect(sources).not.toMatch(/查重率|绕过检测器|绕过 AI 检测/);
   });
 
   it("merges diagnose/analyze into one 诊断与分析 action on the revise desk", () => {
@@ -96,11 +97,20 @@ describe("interface copy", () => {
   });
 
 
-  it("shows session-key and no-bypass notes beside settings", () => {
+  it("strips session-key and no-bypass tip microcopy from settings rail", () => {
     const deskSrc = readFileSync("components/desk/desk-app.tsx", "utf8");
-    expect(deskSrc).toMatch(/密钥只留在这次会话里。/);
-    expect(deskSrc).toMatch(/密钥只留在这次会话里[\s\S]*未做查重；不绕过检测/);
+    expect(deskSrc).not.toMatch(/密钥只留在这次会话里/);
+    expect(deskSrc).not.toMatch(/未做查重；不绕过检测/);
+    expect(deskSrc).not.toMatch(/文章润色,去AI化/);
     expect(deskSrc).not.toMatch(/data-testid="revise-disclaimer"/);
+    expect(deskSrc).toMatch(/WorkbenchRail/);
+    expect(deskSrc).toMatch(/HomeCards/);
+    expect(deskSrc).toMatch(/ComingSoonPanel/);
+    const rail = readFileSync("components/desk/workbench-rail.tsx", "utf8");
+    const home = readFileSync("components/desk/home-cards.tsx", "utf8");
+    expect(rail).toMatch(/data-testid="workbench-rail"/);
+    expect(home).toMatch(/data-testid="desk-home"/);
+    expect(home).toMatch(/即将推出/);
   });
 
 
@@ -125,7 +135,7 @@ describe("interface copy", () => {
     const desk = readFileSync("components/desk/desk-app.tsx", "utf8");
     expect(pane).not.toMatch(/下面只标出哪些表达变了/);
     expect(pane).not.toMatch(/未进行外部查重／AI 检测。下面只标出/);
-    expect(desk).toMatch(/未做查重；不绕过检测/);
+    expect(desk).not.toMatch(/未做查重；不绕过检测/);
   });
 
 
@@ -163,7 +173,7 @@ describe("interface copy", () => {
     expect(desk).not.toMatch(/填入样例要求/);
     expect(desk).not.toMatch(/查看样例批注|关闭样例批注/);
     expect(rail).not.toMatch(/未进行外部查重／AI 检测/);
-    expect(desk).toMatch(/未做查重；不绕过检测/);
+    expect(desk).not.toMatch(/未做查重；不绕过检测/);
   });
 
 

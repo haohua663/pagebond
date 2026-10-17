@@ -1,0 +1,31 @@
+# Local Postgres for Pagebond archives.
+# Defaults (no password prompt): user/password/db = pagebond, port 5432
+#
+# Start:
+#   docker compose -f docker-compose.yml up -d
+# Stop:
+#   docker compose -f docker-compose.yml down
+#
+# Then in .env.local:
+#   DATABASE_URL=postgresql://pagebond:pagebond@127.0.0.1:5432/pagebond
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pagebond-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: pagebond
+      POSTGRES_PASSWORD: pagebond
+      POSTGRES_DB: pagebond
+    volumes:
+      - pagebond_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pagebond -d pagebond"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pagebond_pg_data:

@@ -25,6 +25,7 @@ import { DEFAULT_LLM_BASE_URL } from "@/lib/providers/llm-config";
 import type { LiteratureQueryResult } from "@/lib/providers/openalex";
 import { fromBackup, toBackup } from "@/lib/storage/backup";
 import { idbList, idbPut, idbRemove } from "@/lib/storage/idb";
+import { syncPaperDeleteToServer, syncPaperToServer } from "@/lib/storage/archive-sync-client";
 import type { AnalysisSnapshot, PaperRecord } from "@/lib/storage/types";
 import { localOutline, localRequirements, type OutlineDraft, type RequirementsBrief } from "@/lib/workflows/conceive";
 import { acceptPassed, blocksFromChecks, draftBlocks, remapChecksToOriginal, type AcceptState } from "@/lib/workflows/revise";
@@ -270,6 +271,7 @@ export function DeskApp() {
   const [quota, setQuota] = useState<QuotaInfo | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [archiveServerHint, setArchiveServerHint] = useState<string | null>(null);
   const generation = useRef(1);
   const workMode = useRef<WorkMode>("revise");
   const taskId = useRef("");
@@ -356,6 +358,25 @@ export function DeskApp() {
     return () => window.removeEventListener("pagebond:open-settings", onOpenSettingsEvent);
   }, [mode]);
 
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/archives")
+      .then((r) => r.json())
+      .then((data: { source?: string; message?: string }) => {
+        if (cancelled) return;
+        if (data.source === "postgres") setArchiveServerHint("已连接 Postgres 存档镜像。");
+        else if (data.message) setArchiveServerHint(data.message);
+        else setArchiveServerHint("存档搜索使用本机 IndexedDB。");
+      })
+      .catch(() => {
+        if (!cancelled) setArchiveServerHint("存档搜索使用本机 IndexedDB。");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   async function refreshArchive() {
     try {
       setRecords(await idbList());
@@ -367,6 +388,7 @@ export function DeskApp() {
   async function persist(record: PaperRecord, which: "revise" | "conceive") {
     try {
       await idbPut(record);
+      void syncPaperToServer(record);
       if (which === "revise") setRevise((current) => ({ ...current, saveState: "已保存" }));
       else setConceive((current) => ({ ...current, saveState: "已保存" }));
       await refreshArchive();
@@ -1343,9 +1365,11 @@ export function DeskApp() {
               onOpen={(record) => setOpened(record)}
               onDelete={async (id) => {
                 await idbRemove(id);
+                void syncPaperDeleteToServer(id);
                 if (revise.paperId === id) setRevise((current) => ({ ...current, paperId: "" }));
                 await refreshArchive();
               }}
+              serverHint={archiveServerHint}
               onExport={() => downloadText("PAGEBOND-备份.json", JSON.stringify(toBackup(records), null, 2), "application/json")}
               onImport={async (file) => {
                 const parsed = fromBackup(JSON.parse(await file.text()));
@@ -1353,7 +1377,10 @@ export function DeskApp() {
                   setRevise((current) => ({ ...current, modelError: parsed.error }));
                   return;
                 }
-                for (const record of parsed.records) await idbPut(record);
+                for (const record of parsed.records) {
+                await idbPut(record);
+                void syncPaperToServer(record);
+              }
                 await refreshArchive();
               }}
             />

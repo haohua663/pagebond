@@ -185,7 +185,6 @@ function CompareFocus({
   const revised = currentById.get(block.id);
   const check = checkById.get(block.id);
   const state = accept[block.id];
-  const changed = Boolean(check?.changed) || Boolean(revised && revised.text !== block.text);
   const pairs = revised ? changedSentencePairs(block.text, revised.text) : [];
 
   function go(delta: number) {
@@ -228,10 +227,7 @@ function CompareFocus({
         <span>
           第 {index + 1} / {paragraphs.length} 处改动
         </span>
-        <span>{block.id}</span>
-        {check ? <span>{STATUS_LABEL[check.status]}</span> : null}
-        {state ? <span>{STATUS_LABEL[state] ?? state}</span> : null}
-        {changed ? <span>表达有变化</span> : <span>表达未改</span>}
+        {state === "accepted" || state === "manual" ? <span>{STATUS_LABEL[state]}</span> : null}
       </div>
 
       <div className="space-y-3" data-testid="compare-side-by-side">

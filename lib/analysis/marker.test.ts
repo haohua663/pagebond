@@ -16,3 +16,9 @@ it("strips echoed lock labels", () => {
   expect(stripLockLabels("locked | citation:[1] Text here")).toBe("Text here");
   expect(stripLockLabels("The model reached 76% efficiency")).toBe("The model reached 76% efficiency");
 });
+import { stripPromptTokens } from "@/lib/analysis/validate";
+it("strips echoed kind tags and ids", () => {
+  expect(stripPromptTokens("Item one (list) (list)", "Item one")).toBe("Item one");
+  expect(stripPromptTokens("[p-002] Item one", "Item one")).toBe("Item one");
+  expect(stripPromptTokens("Use a (list) here", "Use a (list) there")).toBe("Use a (list) here");
+});

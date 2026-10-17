@@ -189,6 +189,21 @@ export function stripLockLabels(text: string): string {
   return out === text ? text : out.trimStart();
 }
 
+const KIND_TOKEN = /\s*[(（](?:heading|paragraph|list|quote|formula|reference|table|caption|locked)[)）]\s*/gi;
+const ID_TOKEN = /\s*\[p-\d{3,}\]\s*/g;
+
+/** Remove block-kind tags like "(list)" and ids like "[p-002]" that the model echoed, unless the source had them. */
+export function stripPromptTokens(text: string, source: string): string {
+  let out = text;
+  if (!/[(（](?:heading|paragraph|list|quote|formula|reference|table|caption|locked)[)）]/i.test(source)) {
+    out = out.replace(KIND_TOKEN, (match) => (/^\s/.test(match) && /\s$/.test(match) ? " " : ""));
+  }
+  if (!/\[p-\d{3,}\]/.test(source)) {
+    out = out.replace(ID_TOKEN, (match) => (/^\s/.test(match) && /\s$/.test(match) ? " " : ""));
+  }
+  return out === text ? text : out.trim();
+}
+
 /** Fill missing ids from original and restore original order (low-risk integrity repair). */
 export function alignParagraphs(
   original: DocumentBlock[],
@@ -197,7 +212,7 @@ export function alignParagraphs(
   const byId = new Map(output.map((item) => [item.id, item]));
   return original.map((block) => {
     const hit = byId.get(block.id);
-    const text = hit ? stripLockLabels(hit.text) : "";
+    const text = hit ? stripPromptTokens(stripLockLabels(hit.text), block.text) : "";
     if (hit && text.trim()) return { id: block.id, text, reason: hit.reason };
     return { id: block.id, text: block.text, reason: hit?.reason || "未返回，保留原文" };
   });

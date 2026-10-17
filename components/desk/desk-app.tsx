@@ -1529,6 +1529,7 @@ function ReviseMain({
               preview={state.confirmed.blocks.map((block) => block.text).filter(Boolean)[0] || ""}
               resetKey={state.paperId || contentVersion(state.confirmed.blocks)}
               preferOpen={Boolean(state.activeId)}
+              alwaysOpen={state.view === "compare"}
             >
               <ManuscriptPane
                 view={state.view === "compare" ? "compare" : state.view === "current" ? "current" : "original"}
@@ -1581,6 +1582,7 @@ function ManuscriptCollapse({
   preview,
   resetKey,
   preferOpen = false,
+  alwaysOpen = false,
   children,
 }: {
   title: string;
@@ -1589,6 +1591,7 @@ function ManuscriptCollapse({
   preview: string;
   resetKey: string;
   preferOpen?: boolean;
+  alwaysOpen?: boolean;
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -1598,6 +1601,7 @@ function ManuscriptCollapse({
   useEffect(() => {
     if (preferOpen) setOpen(true);
   }, [preferOpen]);
+  if (alwaysOpen) return <div className="mt-4">{children}</div>;
   void title;
   void charCount;
   void unit;

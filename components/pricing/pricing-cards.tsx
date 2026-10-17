@@ -119,7 +119,7 @@ export function PricingCards() {
               即将开通
             </button>
             <p className={cn("mt-2 text-center text-[11px]", tier.highlighted ? "text-ink-soft" : "text-zinc-500")}>
-              暂无 Stripe · 占位页
+              暂无支付 · 占位页
             </p>
           </div>
           <div className="flex flex-1 flex-col px-6 pb-7 pt-5">
@@ -160,7 +160,7 @@ export function PricingPageShell() {
         <p className="text-xs font-medium tracking-[0.2em] text-zinc-500 uppercase">PAGEBOND</p>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">会员与定价</h1>
         <p className="mx-auto mt-3 max-w-xl text-sm text-zinc-400 md:text-base">
-          占位方案，尚未开通支付。当前可用演示登录与本机工作台；正式会员与额度稍后接入（无 Stripe）。
+          占位方案，尚未开通支付。当前可用演示登录与本机工作台；正式会员与额度稍后接入（暂无在线支付）。
         </p>
         <p className="mt-4 text-sm text-zinc-500">
           <Link href="/#app" className="text-sky-400 hover:underline">

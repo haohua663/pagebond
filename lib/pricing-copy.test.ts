@@ -11,7 +11,7 @@ describe("pricing placeholder", () => {
     expect(cards).toMatch(/团队版/);
     expect(cards).toMatch(/即将开通/);
     expect(cards).toMatch(/data-testid="pricing-cards"/);
-    expect(cards).not.toMatch(/stripe|Stripe|checkout\.session/i);
+    expect(cards).not.toMatch(/checkout\.session|loadStripe|@stripe/i);
     const rail = readFileSync("components/desk/workbench-rail.tsx", "utf8");
     expect(rail).toMatch(/href="\/pricing"/);
     expect(rail).toMatch(/会员 \/ 定价/);

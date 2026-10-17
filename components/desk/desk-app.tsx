@@ -861,8 +861,7 @@ export function DeskApp() {
       setConceive((current) => ({ ...current, error: "要求文件和补充至少要有一项。" }));
       return;
     }
-    const consentOk = conceive.consent === `conceive:${model}:${text}`;
-    const canModel = !needsKey && consentOk;
+    const canModel = !needsKey;
     setConceive((current) => ({
       ...current,
       running: true,
@@ -922,10 +921,6 @@ export function DeskApp() {
 
   async function runOutline() {
     const text = conceive.loaded?.editText || conceive.paste;
-    if (conceive.consent !== `conceive:${model}:${text}`) {
-      setConceive((current) => ({ ...current, modelError: "先勾选外发说明。" }));
-      return;
-    }
     setConceive((current) => ({ ...current, running: true, activePanel: "outline", modelError: null }));
     const previous = conceive.outline;
     let brief = conceive.brief ?? localRequirements(text, conceive.notes);
@@ -1745,9 +1740,11 @@ function ConceiveMain({
     <div className="space-y-4" data-testid="conceive-work">
       <section className="desk-card p-4 sm:p-6">
         <div className="flex flex-wrap items-center gap-2">
-          <p className="text-ink">
-            {loaded.fileName} · {loaded.parsed.stats.chars} 字 · {loaded.source === "paste" ? "当前是粘贴" : "当前是文件"}
-          </p>
+          {loaded.source === "paste" ? null : (
+            <p className="text-ink">
+              {loaded.fileName} · {loaded.parsed.stats.chars} 字 · 当前是文件
+            </p>
+          )}
           <Button type="button" variant="quiet" onClick={onBack} data-testid="conceive-back">
             返回
           </Button>
@@ -1762,17 +1759,6 @@ function ConceiveMain({
             value={state.notes}
             onChange={(event) => setConceive((current) => ({ ...current, notes: event.target.value }))}
           />
-        </label>
-        <label className="mt-4 flex min-h-11 items-start gap-2">
-          <input
-            type="checkbox"
-            className="mt-1 size-5"
-            checked={state.consent === `conceive:${model}:${text}`}
-            onChange={(event) =>
-              setConceive((current) => ({ ...current, consent: event.target.checked ? `conceive:${model}:${text}` : "" }))
-            }
-          />
-          <span>整理要求和生成框架时，这些文字会经本机服务发到兼容 OpenAI 的接口。文献检索只发送检索词。</span>
         </label>
         {state.modelError ? (
           <div className="mt-3">

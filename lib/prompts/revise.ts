@@ -22,6 +22,28 @@ function blockPayload(blocks: DocumentBlock[]): string {
     .join("\n\n");
 }
 
+/** Cap on diagnose suggestions; keeps output (and latency) bounded on long drafts. */
+export const DIAGNOSE_MAX_SUGGESTIONS = 10;
+export const ANALYZE_MAX_SUGGESTIONS = 10;
+
+/**
+ * Original-draft payload for analyze: blocks identical to the current draft are listed by id only,
+ * so the model reads each unchanged paragraph once instead of twice.
+ */
+export function originalDeltaPayload(original: DocumentBlock[], current: DocumentBlock[]): string {
+  const currentText = new Map(current.map((block) => [block.id, block.text]));
+  const unchanged: string[] = [];
+  const changed: DocumentBlock[] = [];
+  for (const block of original) {
+    if (currentText.get(block.id) === block.text) unchanged.push(block.id);
+    else changed.push(block);
+  }
+  const parts: string[] = [];
+  if (changed.length) parts.push(blockPayload(changed));
+  if (unchanged.length) parts.push(`（以下段落与当前稿逐字相同，此处省略：${unchanged.join("、")}）`);
+  return parts.join("\n\n");
+}
+
 export function diagnoseMessages(blocks: DocumentBlock[], options: IntakeOptions) {
   const text = blocks.map((block) => block.text).join("\n");
   return {
@@ -32,7 +54,8 @@ export function diagnoseMessages(blocks: DocumentBlock[], options: IntakeOptions
       "先诊断，不要改写。",
       "每条建议的 quote 必须是对应段落里的原句，不要编摘句。",
       "没有问题时少写建议，不要为了凑数量制造问题。",
-      "事实清单只记录原文里的数字、单位、样本、统计、时间、人名、引用、否定、限定和结论范围。",
+      `建议按重要性排序，最多 ${DIAGNOSE_MAX_SUGGESTIONS} 条；problem、change、verify 各用一两句写清，不要复述整段原文。`,
+      "terms 只列最关键的术语（最多 8 个）。不要输出事实清单。",
       promptStamp(),
     ].join("\n"),
     user: [
@@ -107,9 +130,17 @@ export function analyzeMessages(original: DocumentBlock[], current: DocumentBloc
       "这是当前稿分析，不是改写。对照原稿说明哪些问题已解决、仍在，或必须补材料。",
       "六个维度都要有结论：结构、论证、证据、方法、表达、事实风险。不适用时说明原因。",
       "quote 必须出现在你指定的版本和段落里。",
+      "原稿里与当前稿逐字相同的段落只列出编号，内容以当前稿为准。",
+      "对改动过的段落逐句核对：新措辞是否引入了原文没有测量的概念、新的因果或泛化表述、与结果或结论段不一致之处；有就写成 current-draft 建议。",
       "字面重叠只描述哪些表达变了或没变，不要写成查重率或检测率。",
+      `每个维度的 conclusion 用一两句；resolved、remaining、needsMaterial 每项一句话，各不超过 4 项。建议最多 ${ANALYZE_MAX_SUGGESTIONS} 条，按重要性排序，problem、change、verify 各一两句。`,
       promptStamp(),
     ].join("\n"),
-    user: ["原稿：", documentBlock(blockPayload(original)), "当前稿：", documentBlock(blockPayload(current))].join("\n\n"),
+    user: [
+      "原稿（仅列出与当前稿不同的段落）：",
+      documentBlock(originalDeltaPayload(original, current)),
+      "当前稿：",
+      documentBlock(blockPayload(current)),
+    ].join("\n\n"),
   };
 }

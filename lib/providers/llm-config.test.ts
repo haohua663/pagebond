@@ -99,7 +99,7 @@ describe("resolveLlmRoute dual keys", () => {
     expect(deep.key).toBe("sk-deepseek-test-key-00000001");
     expect(deep.baseUrl).toBe(DEFAULT_DEEPSEEK_BASE_URL);
     expect(deep.model).toBe(DEEP_MODEL_DEFAULT);
-    expect(deep.enableThinking).toBe(true);
+    expect(deep.enableThinking).toBe(false);
     expect(deep.keySource).toBe("route");
     expect(deep.label).toContain("DeepSeek");
   });

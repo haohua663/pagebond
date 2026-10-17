@@ -3,8 +3,11 @@ import type { Suggestion } from "@/lib/analysis/suggestions";
 import { failWithGate, jsonWithGate, openModelGate } from "@/lib/api/guard";
 import { asBlocks, asOptions, tooLong, tooLongMessage } from "@/lib/api/respond";
 import { analyzeMessages } from "@/lib/prompts/revise";
-import { completeJson } from "@/lib/providers/openrouter";
+import { completeValidated } from "@/lib/providers/openrouter";
 import { analyzeJsonSchema, analyzeSchema } from "@/lib/schemas/outputs";
+
+/** Non-thinking output cap; typical answers are ~2–3k tokens. */
+const ANALYZE_MAX_TOKENS = 8000;
 
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as {
@@ -27,16 +30,23 @@ export async function POST(request: Request) {
   const { ctx } = gated;
   const options = asOptions(body?.options);
   const messages = analyzeMessages(original, current, options);
-  const result = await completeJson({
-    model: ctx.model,
-    key: ctx.key,
-    baseUrl: ctx.baseUrl,
-    enableThinking: ctx.enableThinking,
-    schemaName: "pagebond_analyze",
-    schema: analyzeJsonSchema,
-    system: messages.system,
-    user: messages.user,
-  });
+  const result = await completeValidated(
+    {
+      model: ctx.model,
+      key: ctx.key,
+      baseUrl: ctx.baseUrl,
+      enableThinking: ctx.enableThinking,
+      schemaName: "pagebond_analyze",
+      schema: analyzeJsonSchema,
+      system: messages.system,
+      user: messages.user,
+      maxTokens: ANALYZE_MAX_TOKENS,
+    },
+    (json) => {
+      const check = analyzeSchema.safeParse(json);
+      return check.success ? check.data : null;
+    },
+  );
   if (!result.ok) {
     return failWithGate(ctx, result, result.code === "TIMEOUT" ? 504 : 502);
   }

@@ -76,9 +76,20 @@ export function defaultBaseUrlForRoute(route: LlmRoute): string {
 }
 
 /**
+ * Thinking/reasoning default per route. Both routes default OFF: DeepSeek V4.x thinks by default
+ * (effort "high"), which made diagnose/analyze ~4x slower (≈34s vs ≈9s on a 1k-word draft) for
+ * little visible gain. Opt back in with PAGEBOND_DEEP_THINKING=on / PAGEBOND_DAILY_THINKING=on.
+ */
+export function routeThinkingDefault(route: LlmRoute): boolean {
+  const raw = envTrim(route === "deep" ? "PAGEBOND_DEEP_THINKING" : "PAGEBOND_DAILY_THINKING")?.toLowerCase();
+  if (raw && ["on", "true", "1", "yes", "enabled"].includes(raw)) return true;
+  return false;
+}
+
+/**
  * Resolve key / base / model for a product route.
  * Order: session BYOK → route-specific env → LLM_* legacy → none.
- * Thinking defaults OFF for daily polish; deep leaves thinking to upstream defaults unless overridden.
+ * Thinking defaults OFF for both routes (see routeThinkingDefault); env can turn it back on.
  */
 export function resolveLlmRoute(
   route: LlmRoute,
@@ -86,13 +97,13 @@ export function resolveLlmRoute(
     sessionKey?: string | null;
     sessionBaseUrl?: string | null;
     requestedModel?: string | null;
-    /** Override thinking; default false for daily, true for deep (DeepSeek thinks by default). */
+    /** Override thinking; default from routeThinkingDefault (off unless env opts in). */
     enableThinking?: boolean;
   },
 ): ResolvedLlmRoute {
   const label = routeLabel(route);
   const requested = opts?.requestedModel?.trim() || null;
-  const thinkingDefault = route === "deep";
+  const thinkingDefault = routeThinkingDefault(route);
 
   const sessionKey = opts?.sessionKey?.trim() || null;
   if (sessionKey) {
@@ -111,7 +122,7 @@ export function resolveLlmRoute(
       key: sessionKey,
       baseUrl,
       model,
-      enableThinking: opts?.enableThinking ?? false,
+      enableThinking: opts?.enableThinking ?? thinkingDefault,
       keySource: "session",
       label,
       configured: true,
@@ -126,7 +137,7 @@ export function resolveLlmRoute(
         key: routeKey,
         baseUrl: normalizeBaseUrl(envTrim("QWEN_BASE_URL"), DEFAULT_QWEN_BASE_URL),
         model: requested || envTrim("QWEN_MODEL") || envTrim("LLM_MODEL") || DAILY_MODEL_DEFAULT,
-        enableThinking: opts?.enableThinking ?? false,
+        enableThinking: opts?.enableThinking ?? thinkingDefault,
         keySource: "route",
         label,
         configured: true,
@@ -140,7 +151,7 @@ export function resolveLlmRoute(
         key: routeKey,
         baseUrl: normalizeBaseUrl(envTrim("DEEPSEEK_BASE_URL"), DEFAULT_DEEPSEEK_BASE_URL),
         model: requested || envTrim("DEEPSEEK_MODEL") || envTrim("LLM_MODEL") || DEEP_MODEL_DEFAULT,
-        enableThinking: opts?.enableThinking ?? true,
+        enableThinking: opts?.enableThinking ?? thinkingDefault,
         keySource: "route",
         label,
         configured: true,

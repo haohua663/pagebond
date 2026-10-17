@@ -545,10 +545,65 @@ export function DeskApp() {
     }
     const draftChanged = contentVersion(currentBlocks) !== contentVersion(revise.confirmed.blocks);
     setRevise((current) => ({ ...current, running: true, modelError: null, status: "running", stageNote: "诊断与分析中…" }));
-    if (draftChanged) {
+    // One model call; show elapsed time so the wait is visibly progressing.
+    const startedAt = Date.now();
+    const ticker = window.setInterval(() => {
+      const seconds = Math.round((Date.now() - startedAt) / 1000);
+      setRevise((current) =>
+        current.running && current.stageNote?.startsWith("诊断与分析中")
+          ? { ...current, stageNote: `诊断与分析中…已用 ${seconds} 秒` }
+          : current,
+      );
+    }, 1000);
+    try {
+      if (draftChanged) {
+        const data = await postJson(
+          "/api/revise/analyze",
+          { original: revise.confirmed.blocks, current: currentBlocks, options: revise.options, model },
+          sessionKey,
+          setQuota,
+          sessionBaseUrl,
+        );
+        if (!data.ok) {
+          setRevise((current) => ({
+            ...current,
+            running: false,
+            status: "failed",
+            stageNote: null,
+            modelError: data.message || "诊断与分析没有完成。未调用到可用模型。",
+          }));
+          return;
+        }
+        const suggestions = (data.suggestions as Suggestion[]) || [];
+        const snapshot: AnalysisSnapshot = {
+          version: contentVersion(currentBlocks),
+          summary: String(data.summary || ""),
+          dimensions: (data.dimensions as AnalysisSnapshot["dimensions"]) || [],
+          suggestions,
+          origin: "model",
+          model: String(data.model || model),
+          promptVersion: PROMPT_VERSION,
+        };
+        setRevise((current) => {
+          const next = {
+            ...current,
+            running: false,
+            status: "review" as TaskStatus,
+            stageNote: null,
+            diagnosisSummary: String(data.summary || ""),
+            analysisCurrent: snapshot,
+            suggestions: [...current.suggestions.filter((item) => item.version !== "current-draft"), ...suggestions],
+            modelError: null,
+            view: "analysis" as const,
+          };
+          void persist(reviseRecord(next, "review"), "revise");
+          return next;
+        });
+        return;
+      }
       const data = await postJson(
-        "/api/revise/analyze",
-        { original: revise.confirmed.blocks, current: currentBlocks, options: revise.options, model },
+        "/api/revise/diagnose",
+        { blocks: revise.confirmed.blocks, options: revise.options, model },
         sessionKey,
         setQuota,
         sessionBaseUrl,
@@ -563,12 +618,14 @@ export function DeskApp() {
         }));
         return;
       }
-      const suggestions = (data.suggestions as Suggestion[]) || [];
-      const snapshot: AnalysisSnapshot = {
-        version: contentVersion(currentBlocks),
-        summary: String(data.summary || ""),
-        dimensions: (data.dimensions as AnalysisSnapshot["dimensions"]) || [],
-        suggestions,
+      const modelNotes = (data.suggestions as Suggestion[]) || [];
+      const summary = String(data.summary || "");
+      const version = contentVersion(revise.confirmed.blocks);
+      const analysisOriginal: AnalysisSnapshot = {
+        version,
+        summary,
+        dimensions: [],
+        suggestions: modelNotes,
         origin: "model",
         model: String(data.model || model),
         promptVersion: PROMPT_VERSION,
@@ -579,61 +636,18 @@ export function DeskApp() {
           running: false,
           status: "review" as TaskStatus,
           stageNote: null,
-          diagnosisSummary: String(data.summary || ""),
-          analysisCurrent: snapshot,
-          suggestions: [...current.suggestions.filter((item) => item.version !== "current-draft"), ...suggestions],
+          diagnosisSummary: summary,
+          analysisOriginal,
+          suggestions: [...current.suggestions.filter((item) => item.origin === "local"), ...modelNotes],
           modelError: null,
           view: "analysis" as const,
         };
         void persist(reviseRecord(next, "review"), "revise");
         return next;
       });
-      return;
+    } finally {
+      window.clearInterval(ticker);
     }
-    const data = await postJson(
-      "/api/revise/diagnose",
-      { blocks: revise.confirmed.blocks, options: revise.options, model },
-      sessionKey,
-      setQuota,
-      sessionBaseUrl,
-    );
-    if (!data.ok) {
-      setRevise((current) => ({
-        ...current,
-        running: false,
-        status: "failed",
-        stageNote: null,
-        modelError: data.message || "诊断与分析没有完成。未调用到可用模型。",
-      }));
-      return;
-    }
-    const modelNotes = (data.suggestions as Suggestion[]) || [];
-    const summary = String(data.summary || "");
-    const version = contentVersion(revise.confirmed.blocks);
-    const analysisOriginal: AnalysisSnapshot = {
-      version,
-      summary,
-      dimensions: [],
-      suggestions: modelNotes,
-      origin: "model",
-      model: String(data.model || model),
-      promptVersion: PROMPT_VERSION,
-    };
-    setRevise((current) => {
-      const next = {
-        ...current,
-        running: false,
-        status: "review" as TaskStatus,
-        stageNote: null,
-        diagnosisSummary: summary,
-        analysisOriginal,
-        suggestions: [...current.suggestions.filter((item) => item.origin === "local"), ...modelNotes],
-        modelError: null,
-        view: "analysis" as const,
-      };
-      void persist(reviseRecord(next, "review"), "revise");
-      return next;
-    });
   }
 
   async function rewrite() {

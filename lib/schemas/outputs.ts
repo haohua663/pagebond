@@ -13,9 +13,11 @@ const suggestion = z.object({
 });
 
 export const diagnoseSchema = z.object({
-  researchQuestion: z.string(),
-  terms: z.array(z.string()),
-  facts: z.array(z.object({ blockId: z.string(), text: z.string(), kind: z.string() })),
+  // researchQuestion / terms / facts are not shown in the UI; tolerate their absence so a
+  // shorter model answer still validates. facts is no longer requested (saves ~30% output).
+  researchQuestion: z.string().optional().default(""),
+  terms: z.array(z.string()).optional().default([]),
+  facts: z.array(z.object({ blockId: z.string(), text: z.string(), kind: z.string() })).optional().default([]),
   summary: z.string(),
   suggestions: z.array(suggestion),
 });
@@ -103,19 +105,10 @@ export const suggestionJsonSchema = {
 export const diagnoseJsonSchema = {
   type: "object",
   additionalProperties: false,
-  required: ["researchQuestion", "terms", "facts", "summary", "suggestions"],
+  required: ["researchQuestion", "terms", "summary", "suggestions"],
   properties: {
     researchQuestion: { type: "string" },
     terms: { type: "array", items: { type: "string" } },
-    facts: {
-      type: "array",
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: ["blockId", "text", "kind"],
-        properties: { blockId: { type: "string" }, text: { type: "string" }, kind: { type: "string" } },
-      },
-    },
     summary: { type: "string" },
     suggestions: { type: "array", items: suggestionJsonSchema },
   },

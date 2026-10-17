@@ -136,9 +136,9 @@ describe("interface copy", () => {
     expect(pane).toMatch(/data-testid="compare-side-by-side"/);
     expect(pane).toMatch(/选择段落/);
     expect(pane).toMatch(/原文/);
-    expect(pane).toMatch(/改后/);
+    expect(pane).toMatch(/改文/);
     expect(pane).toMatch(/block\.kind !== "heading"/);
-    expect(pane).toMatch(/第 \$\{itemIndex \+ 1\} 段/);
+    expect(pane).toMatch(/changedSentencePairs/);
     expect(pane).not.toMatch(/const kind = item\.kind === "heading"/);
   });
 

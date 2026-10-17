@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { BlockCheck } from "@/lib/analysis/validate";
-import { compareExpressions } from "@/lib/analysis/overlap";
+import { changedSentencePairs } from "@/lib/analysis/sentence-diff";
 import type { DocumentBlock } from "@/lib/document/types";
 import type { AcceptState } from "@/lib/workflows/revise";
 import { Button } from "@/components/ui/button";
@@ -137,7 +137,17 @@ function CompareFocus({
   const currentById = useMemo(() => new Map(current.map((block) => [block.id, block])), [current]);
 
   const paragraphs = useMemo(
-    () => original.filter((block) => block.kind !== "heading"),
+    () =>
+      original.filter((block) => {
+        if (block.kind === "heading") return false;
+        const revisedText = currentById.get(block.id)?.text;
+        return Boolean(checkById.get(block.id)?.changed) || (revisedText !== undefined && revisedText !== block.text);
+      }),
+    [original, currentById, checkById],
+  );
+
+  const paragraphNumber = useMemo(
+    () => new Map(original.filter((item) => item.kind !== "heading").map((item, itemIndex) => [item.id, itemIndex])),
     [original],
   );
 
@@ -169,17 +179,14 @@ function CompareFocus({
   );
   const block = paragraphs[index];
   if (!block) {
-    return <p className="text-sm text-ink-soft">还没有可对照的段落。先完成「人话化并改写」。</p>;
+    return <p className="text-sm text-ink-soft">还没有改动的地方。先完成「人话化并改写」。</p>;
   }
 
   const revised = currentById.get(block.id);
   const check = checkById.get(block.id);
   const state = accept[block.id];
   const changed = Boolean(check?.changed) || Boolean(revised && revised.text !== block.text);
-  const expressions =
-    revised && revised.text !== block.text
-      ? compareExpressions(block.id, block.text, revised.text, block.protections)
-      : null;
+  const pairs = revised ? changedSentencePairs(block.text, revised.text) : [];
 
   function go(delta: number) {
     const next = Math.min(paragraphs.length - 1, Math.max(0, index + delta));
@@ -199,10 +206,9 @@ function CompareFocus({
             onChange={(event) => setSelectedId(event.target.value)}
           >
             {paragraphs.map((item, itemIndex) => {
-              const itemChanged = Boolean(checkById.get(item.id)?.changed);
               return (
                 <option key={item.id} value={item.id}>
-                  {`第 ${itemIndex + 1} 段${itemChanged ? " · 有变化" : ""}`}
+                  {`第 ${(paragraphNumber.get(item.id) ?? itemIndex) + 1} 段`}
                 </option>
               );
             })}
@@ -220,7 +226,7 @@ function CompareFocus({
 
       <div className="flex flex-wrap gap-2 font-ui text-sm text-ink-soft">
         <span>
-          第 {index + 1} / {paragraphs.length} 段
+          第 {index + 1} / {paragraphs.length} 处改动
         </span>
         <span>{block.id}</span>
         {check ? <span>{STATUS_LABEL[check.status]}</span> : null}
@@ -228,15 +234,23 @@ function CompareFocus({
         {changed ? <span>表达有变化</span> : <span>表达未改</span>}
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2" data-testid="compare-side-by-side">
-        <section className="rounded-xl border border-line bg-paper/70 p-3">
-          <p className="font-ui text-sm text-ink-soft">原文</p>
-          <p className="manuscript mt-2 whitespace-pre-wrap text-ink">{block.text}</p>
-        </section>
-        <section className="rounded-xl border border-line bg-sunk/50 p-3">
-          <p className="font-ui text-sm text-ink-soft">改后</p>
-          <p className="manuscript mt-2 whitespace-pre-wrap text-ink">{revised?.text || block.text}</p>
-        </section>
+      <div className="space-y-3" data-testid="compare-side-by-side">
+        {pairs.length ? (
+          pairs.map((pair, pairIndex) => (
+            <div key={`${block.id}-p-${pairIndex}`} className="grid gap-2 md:grid-cols-2">
+              <section className="rounded-xl border border-line bg-paper/70 p-3">
+                <p className="font-ui text-sm text-ink-soft">原文</p>
+                <p className="manuscript mt-1 whitespace-pre-wrap text-ink">{pair.before || "（新增）"}</p>
+              </section>
+              <section className="rounded-xl border border-line bg-sunk/50 p-3">
+                <p className="font-ui text-sm text-ink-soft">改文</p>
+                <p className="manuscript mt-1 whitespace-pre-wrap text-ink">{pair.after || "（删去）"}</p>
+              </section>
+            </div>
+          ))
+        ) : (
+          <p className="font-ui text-sm text-ink-soft">这一段没有改动。</p>
+        )}
       </div>
 
 

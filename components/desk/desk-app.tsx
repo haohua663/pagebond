@@ -1200,8 +1200,8 @@ export function DeskApp() {
       return;
     }
     if (action === "user") {
-      openSettings();
-      setSuggestionsOpen(false);
+      // Account menu (登录/注册 / 演示登录) is handled inside WorkbenchRail.
+      return;
     }
   }
 

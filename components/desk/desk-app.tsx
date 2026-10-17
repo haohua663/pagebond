@@ -1440,10 +1440,11 @@ function ReviseMain({
       {state.confirmed ? (
         <section className="desk-card p-4 sm:p-6">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-ink">
-              {loaded?.fileName} · {state.options.language === "en" ? `${state.confirmed.stats.words} 词` : `${state.confirmed.stats.chars} 字`} ·{" "}
-              {loaded?.source === "paste" ? "当前是粘贴" : "当前是文件"}
-            </p>
+            {loaded?.source === "paste" ? null : (
+              <p className="text-ink">
+                {loaded?.fileName} · {state.options.language === "en" ? `${state.confirmed.stats.words} 词` : `${state.confirmed.stats.chars} 字`} · 当前是文件
+              </p>
+            )}
             <Button type="button" variant="quiet" onClick={onClear}>
               换一篇
             </Button>

@@ -176,6 +176,19 @@ export function applyLockedTerms(blocks: DocumentBlock[], terms: string[]): Docu
 }
 
 
+const LOCK_TOKEN = /^\s*(?:locked|(?:formula|quote|number-unit|citation|reference):\S*)\s*(?:\|\s*)?/;
+
+/** Remove prompt-side lock labels (e.g. "number-unit:76%") that a model echoed into its output. */
+export function stripLockLabels(text: string): string {
+  let out = text;
+  for (let guard = 0; guard < 20; guard += 1) {
+    const match = LOCK_TOKEN.exec(out);
+    if (!match || !match[0]) break;
+    out = out.slice(match[0].length);
+  }
+  return out === text ? text : out.trimStart();
+}
+
 /** Fill missing ids from original and restore original order (low-risk integrity repair). */
 export function alignParagraphs(
   original: DocumentBlock[],
@@ -184,7 +197,8 @@ export function alignParagraphs(
   const byId = new Map(output.map((item) => [item.id, item]));
   return original.map((block) => {
     const hit = byId.get(block.id);
-    if (hit && hit.text.trim()) return { id: block.id, text: hit.text, reason: hit.reason };
+    const text = hit ? stripLockLabels(hit.text) : "";
+    if (hit && text.trim()) return { id: block.id, text, reason: hit.reason };
     return { id: block.id, text: block.text, reason: hit?.reason || "未返回，保留原文" };
   });
 }

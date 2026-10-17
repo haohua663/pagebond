@@ -239,22 +239,6 @@ function CompareFocus({
         </section>
       </div>
 
-      {expressions?.changed.length ? (
-        <ul className="list-disc pl-5 font-ui text-sm text-ink">
-          {expressions.changed.map((item, itemIndex) => (
-            <li key={`${block.id}-c-${itemIndex}`}>
-              {item.before ? `原表达：${item.before}` : "新增表达"}
-              {item.after ? ` → ${item.after}` : ""}
-            </li>
-          ))}
-        </ul>
-      ) : null}
-      {expressions?.held.length ? (
-        <p className="font-ui text-sm text-ink-soft">
-          仍保持的引用、数字或锁定内容：{expressions.held.map((item) => item.text).join("、")}
-        </p>
-      ) : null}
-      {check?.reasons.length ? <p className="font-ui text-sm text-ink">{check.reasons.join("；")}</p> : null}
 
       {!readOnly && check && check.status !== "reverted" && check.changed ? (
         <div className="flex flex-wrap gap-2 font-ui">

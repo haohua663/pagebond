@@ -31,7 +31,7 @@ const FALLBACK_GUIDE: Record<WriteField, string> = {
 function readSkillExcerpt(repoRoot: string, skillPath: string, maxChars = 1800): string | null {
   const candidates = ["SKILL.md", "references/key_principles.md", "README.md"];
   for (const name of candidates) {
-    const full = path.join(repoRoot, skillPath, name);
+    const full = path.join(/* turbopackIgnore: true */ repoRoot, skillPath, name);
     if (!existsSync(full)) continue;
     try {
       const raw = readFileSync(full, "utf8");

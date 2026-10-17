@@ -539,10 +539,6 @@ export function DeskApp() {
 
   async function analyze() {
     if (!revise.confirmed) return;
-    if (revise.consent !== scopeKey) {
-      setRevise((current) => ({ ...current, modelError: "先勾选外发说明。范围或模型变了之后需要再确认一次。" }));
-      return;
-    }
     if (documentChars(revise.confirmed.blocks) > LIMITS.targetChars || documentChars(currentBlocks) > LIMITS.targetChars) {
       setRevise((current) => ({ ...current, modelError: "超过 4 万字目标上限，没有截断，也没有发送。" }));
       return;
@@ -642,10 +638,6 @@ export function DeskApp() {
 
   async function rewrite() {
     if (!revise.confirmed) return;
-    if (revise.consent !== scopeKey) {
-      setRevise((current) => ({ ...current, modelError: "先勾选外发说明。范围或模型变了之后需要再确认一次。" }));
-      return;
-    }
     if (documentChars(revise.confirmed.blocks) > LIMITS.targetChars) {
       setRevise((current) => ({ ...current, modelError: "超过 4 万字目标上限，没有截断，也没有发送。" }));
       return;
@@ -1132,7 +1124,7 @@ export function DeskApp() {
   const verifiedNote =
     revise.confirmed && documentChars(revise.confirmed.blocks) > LIMITS.verifiedChars
       ? `这篇大约 ${documentChars(revise.confirmed.blocks)} 字，超过已验证的 ${LIMITS.verifiedChars} 字。可以分块处理，但不标成长文已支持。`
-      : `已用自动长文测试验证到 ${LIMITS.verifiedChars} 字。超过这个长度会停住，不截断。`;
+      : "";
   const analysisStale =
     (revise.analysisCurrent && contentVersion(currentBlocks) !== revise.analysisCurrent.version) ||
     (revise.analysisOriginal &&
@@ -1456,7 +1448,7 @@ function ReviseMain({
               换一篇
             </Button>
           </div>
-          <p className="mt-2 text-sm text-ink-soft">{verifiedNote}</p>
+          {verifiedNote ? <p className="mt-2 text-sm text-ink-soft">{verifiedNote}</p> : null}
           {state.modelError ? (
             <div className="mt-3">
               <p role="alert" data-testid="model-error" className="rounded-xl border border-line bg-sunk/80 px-3 py-2">
@@ -1466,15 +1458,6 @@ function ReviseMain({
             </div>
           ) : null}
           {analysisStale ? <p className="mt-2 text-ink">{analysisStale}</p> : null}
-          <label className="mt-3 flex min-h-11 items-start gap-2">
-            <input
-              type="checkbox"
-              className="mt-1 size-5"
-              checked={state.consent === scopeKey}
-              onChange={(event) => setRevise((current) => ({ ...current, consent: event.target.checked ? scopeKey : "" }))}
-            />
-            <span>开始后正文经本机、兼容 OpenAI 的接口发往模型；无服务器数据库，但会离开浏览器。</span>
-          </label>
           {state.stageNote ? (
             <p className="mt-2 rounded-xl border border-line bg-desk/60 px-3 py-2 text-sm" data-testid="revise-stage">
               {state.stageNote}

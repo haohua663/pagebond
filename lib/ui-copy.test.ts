@@ -51,7 +51,8 @@ describe("interface copy", () => {
     expect(desk).not.toMatch(/desk-callout mt-3 flex flex-wrap items-start/);
     expect(desk).not.toMatch(/改写流水线会先做/);
     expect(desk).not.toMatch(/data-testid="revise-disclaimer"/);
-    expect(desk).toMatch(/无服务器数据库，但会离开浏览器/);
+    expect(desk).not.toMatch(/无服务器数据库，但会离开浏览器/);
+    expect(desk).not.toMatch(/已用自动长文测试验证到/);
     expect(desk).not.toMatch(/确认输入版会从浏览器发到本机服务/);
     expect(desk).not.toMatch(/费用估算/);
     expect(desk).not.toMatch(/\["current", "当前稿"\]/);
@@ -108,7 +109,7 @@ describe("interface copy", () => {
     expect(deskSrc).toMatch(/const consentKey =/);
     expect(deskSrc).toMatch(/contentVersion\(confirmed\.blocks\)/);
     expect(deskSrc).toMatch(/consent: consentKey/);
-    expect(deskSrc).toMatch(/consent: event\.target\.checked \? scopeKey/);
+    expect(deskSrc).not.toMatch(/consent: event\.target\.checked \? scopeKey/);
   });
 
 

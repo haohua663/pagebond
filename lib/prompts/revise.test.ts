@@ -98,6 +98,18 @@ describe("prompts and credentials", () => {
     expect(en).toMatch(/Do not introduce AI-writing tells/);
   });
 
+  it("protects terms, author judgments and length in humanize (zh and en)", () => {
+    const zh = humanizeMessages(parseProse("一段中文。").blocks, { ...emptyOptions(), language: "zh" }, []).system;
+    expect(zh).toMatch(/专业术语、研究方法名称.*一律原样保留/);
+    expect(zh).toMatch(/作者判断、立场、局限或结论的句子可以压缩措辞，但不能整句删掉/);
+    expect(zh).toMatch(/纯套话才能删/);
+    expect(zh).toMatch(/75%~80%/);
+    const en = humanizeMessages(parseProse("English text.").blocks, { ...emptyOptions(), language: "en" }, []).system;
+    expect(en).toMatch(/Keep technical terms, method names/);
+    expect(en).toMatch(/never deleted whole/);
+    expect(en).toMatch(/75-80%/);
+  });
+
   it("keeps the humanize prompt compact enough to send per chunk", () => {
     const doc = parseProse("一段中文。");
     const system = humanizeMessages(doc.blocks, { ...emptyOptions(), language: "zh" }, []).system;

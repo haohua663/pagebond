@@ -24,6 +24,8 @@ export interface RewriteCheck {
   issues: string[];
 }
 
+const NON_NEGATING = /不仅仅|不仅|不只|不但|不单|不断|不少|不同|不管|不论|不久|不过|未来/g;
+
 function semanticFlags(original: string, rewritten: string): string[] {
   const flags: string[] = [];
   if (original.includes("未显著") && !rewritten.includes("未显著") && rewritten.includes("显著")) {
@@ -39,7 +41,9 @@ function semanticFlags(original: string, rewritten: string): string[] {
   if (/从\s*\d+(?:\.\d+)?\s*%\s*上升到\s*\d+(?:\.\d+)?\s*%/.test(original) && /增长\s*\d+(?:\.\d+)?\s*%/.test(rewritten)) {
     flags.push("「从…上升到…」被写成了「增长」");
   }
-  const negation = (value: string) => value.match(/不|未|没有|并非/g)?.length ?? 0;
+  // 「不仅」「不断」「不同」等不是否定；人话化删掉「不仅……而且」时不应报限定变少。
+  const negation = (value: string) =>
+    value.replace(NON_NEGATING, "").match(/不|未|没有|并非/g)?.length ?? 0;
   if (negation(original) > negation(rewritten)) {
     flags.push("否定或限定变少了");
   }
@@ -242,4 +246,112 @@ export function checkRewriteWithTerms(
     };
   });
   return { ...result, blocks };
+}
+
+/** Humanize may trim filler, but a paragraph shorter than this share of the source is retried once. */
+export const HUMANIZE_MIN_LENGTH_RATIO = 0.7;
+/** Paragraphs shorter than this (non-space chars) are too small for a meaningful ratio. */
+const SHRINK_MIN_SOURCE_CHARS = 40;
+
+const ZH_TERM_SUFFIX =
+  "(?:研究方法|研究设计|分析法|研究法|调查法|访谈法|实验法|方法论|理论|模型|量表|框架|范式|检验|系数|访谈)";
+// Prefix: 2–6 chars without function words, so a term starts after 的/了/与/用 etc.
+const ZH_TERM_STOP = "\\s，。；：、！？“”‘’「」（）()\\[\\]的了与和及或在对把将是为从由等其该这那并而且用于每各本此不也都还就要会能可仅只均已";
+const ZH_TERM = new RegExp(`[^${ZH_TERM_STOP}]{2,6}${ZH_TERM_SUFFIX}`, "g");
+const ZH_NAMED_ANALYSIS = /(?:回归|因子|主题|内容|方差|路径|聚类|话语|元|相关)分析/g;
+// Leading verbs the prefix may still swallow (表明量表 → 量表 is too short to count).
+const ZH_LEAD_VERB = /^(?:表明|显示|说明|关注|考察|结合|相结合|采|深入|开展|完成|构建|建立|提出|运用|借助|依据|根据)/;
+const EN_TERM =
+  /\b(?:mixed[- ]methods?(?: design| approach| study)?|semi-structured interviews?|grounded theory|structural equation model(?:ing)?|Likert(?:-type)? scale|Cronbach's alpha|(?:thematic|content|regression|factor|discourse|path|cluster|meta-)\s?analysis)\b/gi;
+const EN_NAMED = /\b(?:[A-Z][a-z]+\s+){1,3}(?:Model|Theory|Scale|Framework|Test|Inventory|Questionnaire)\b/g;
+
+/**
+ * Cheap, conservative technical-term candidates (method, theory, scale names) found in a source
+ * paragraph. Used only as a soft retry hint for humanize, never to revert a paragraph.
+ */
+export function technicalTerms(text: string): string[] {
+  const found = new Set<string>();
+  for (const raw of text.match(ZH_TERM) ?? []) {
+    let term = raw;
+    for (let guard = 0; guard < 3 && ZH_LEAD_VERB.test(term); guard += 1) term = term.replace(ZH_LEAD_VERB, "");
+    const suffix = new RegExp(`${ZH_TERM_SUFFIX}$`).exec(term)?.[0] ?? "";
+    if (term.length - suffix.length >= 2) found.add(term);
+  }
+  for (const match of text.match(ZH_NAMED_ANALYSIS) ?? []) found.add(match);
+  for (const match of text.match(EN_TERM) ?? []) found.add(match);
+  for (const match of text.match(EN_NAMED) ?? []) {
+    if (!/^(?:The|A|An|This|That|Our|We)\s/.test(match)) found.add(match);
+    else if (match.split(/\s+/).length > 2) found.add(match.replace(/^\S+\s+/, ""));
+  }
+  return [...found];
+}
+
+function visibleLength(text: string): number {
+  return [...text.replace(/\s/g, "")].length;
+}
+
+export interface HumanizeSoftCheck {
+  id: string;
+  ratio: number;
+  shrunk: boolean;
+  lostTerms: string[];
+}
+
+/**
+ * Soft checks for the humanize pass: over-deletion (length ratio) and dropped technical terms.
+ * Returns per-block findings plus repair notes for one retry. Nothing here blocks a result.
+ */
+export function humanizeSoftChecks(
+  original: DocumentBlock[],
+  checks: BlockCheck[],
+  extraTerms: string[] = [],
+): { blocks: HumanizeSoftCheck[]; notes: string[] } {
+  const extra = extraTerms.map((term) => term.trim()).filter(Boolean);
+  const blocks: HumanizeSoftCheck[] = [];
+  const notes: string[] = [];
+  for (const check of checks) {
+    const source = original.find((block) => block.id === check.id);
+    if (!source || source.kind === "heading" || source.locked) continue;
+    const lockedLoss = check.reasons.find((reason) => reason.startsWith("锁定术语被改掉"));
+    if (check.status === "reverted" && lockedLoss) {
+      notes.push(`${check.id} ${lockedLoss}，请原样保留`);
+      continue;
+    }
+    if (!check.changed) continue;
+    const before = visibleLength(source.text);
+    const ratio = before ? visibleLength(check.suggestedText) / before : 1;
+    const shrunk = before >= SHRINK_MIN_SOURCE_CHARS && ratio < HUMANIZE_MIN_LENGTH_RATIO;
+    const terms = [...new Set([...technicalTerms(source.text), ...extra.filter((term) => source.text.includes(term))])];
+    const lostTerms = terms.filter((term) => !check.suggestedText.includes(term));
+    if (!shrunk && !lostTerms.length) continue;
+    blocks.push({ id: check.id, ratio, shrunk, lostTerms });
+    if (shrunk) {
+      notes.push(`${check.id} 人话化删减过多（只剩原文约 ${Math.round(ratio * 100)}%），请保留信息只改表达，作者的判断和结论句不要删`);
+    }
+    if (lostTerms.length) notes.push(`${check.id} 丢了专业术语：${lostTerms.join("、")}，请原样保留`);
+  }
+  return { blocks, notes };
+}
+
+/** After the retry, keep the text but ask the user to look at paragraphs that still lost terms. */
+export function flagLostTerms(
+  original: DocumentBlock[],
+  check: RewriteCheck,
+  soft: HumanizeSoftCheck[],
+): RewriteCheck {
+  const byId = new Map(soft.filter((item) => item.lostTerms.length).map((item) => [item.id, item]));
+  if (!byId.size) return check;
+  return {
+    ...check,
+    blocks: check.blocks.map((block) => {
+      const hit = byId.get(block.id);
+      if (!hit || block.status !== "passed") return block;
+      return {
+        ...block,
+        status: "needs-review" as const,
+        reasons: [...block.reasons, `可能丢了术语：${hit.lostTerms.join("、")}`],
+        text: original.find((source) => source.id === block.id)?.text ?? block.text,
+      };
+    }),
+  };
 }

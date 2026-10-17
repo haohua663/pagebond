@@ -1,4 +1,10 @@
-import { alignParagraphs, checkRewriteWithTerms } from "@/lib/analysis/validate";
+import {
+  alignParagraphs,
+  checkRewriteWithTerms,
+  flagLostTerms,
+  humanizeSoftChecks,
+  type RewriteCheck,
+} from "@/lib/analysis/validate";
 import { failWithGate, jsonWithGate, openModelGate } from "@/lib/api/guard";
 import { asBlocks, asOptions, tooLong, tooLongMessage } from "@/lib/api/respond";
 import { humanizeMessages } from "@/lib/prompts/revise";
@@ -25,6 +31,10 @@ export async function POST(request: Request) {
   let usedModel = model;
   let usage = null as { promptTokens: number | null; completionTokens: number | null } | null;
 
+  // Best structurally valid result so far; a soft retry (over-deletion, lost terms) never makes things worse.
+  let accepted: RewriteCheck | null = null;
+  let softBlocks: ReturnType<typeof humanizeSoftChecks>["blocks"] = [];
+
   for (let pass = 0; pass < 2; pass += 1) {
     const messages = humanizeMessages(blocks, options, repairNotes);
     const result = await completeJson({
@@ -38,20 +48,34 @@ export async function POST(request: Request) {
       user: messages.user,
     });
     if (!result.ok) {
+      if (accepted) break;
       return failWithGate(ctx, result, result.code === "TIMEOUT" ? 504 : 502);
     }
     usedModel = result.model;
-    usage = result.usage;
+    usage = addUsage(usage, result.usage);
     const parsed = rewriteSchema.safeParse(result.json);
     if (!parsed.success) {
+      if (accepted) break;
       repairNotes = ["返回的结构无法解析"];
       continue;
     }
     const aligned = alignParagraphs(blocks, parsed.data.paragraphs);
-    lastCheck = checkRewriteWithTerms(blocks, aligned, options.lockedTerms);
-    if (lastCheck.integrity === "passed") break;
-    repairNotes = lastCheck.issues;
+    const check = checkRewriteWithTerms(blocks, aligned, options.lockedTerms);
+    if (check.integrity !== "passed") {
+      if (accepted) break;
+      lastCheck = check;
+      repairNotes = check.issues;
+      continue;
+    }
+    accepted = check;
+    lastCheck = check;
+    const soft = humanizeSoftChecks(blocks, check.blocks, options.lockedTerms);
+    softBlocks = soft.blocks;
+    if (!soft.notes.length) break;
+    // One retry for over-deletion or dropped terms; the retry result is accepted as is.
+    repairNotes = soft.notes;
   }
+  lastCheck = flagLostTerms(blocks, lastCheck, softBlocks);
 
   return jsonWithGate(
     ctx,
@@ -68,4 +92,14 @@ export async function POST(request: Request) {
     undefined,
     usage,
   );
+}
+
+function addUsage(
+  total: { promptTokens: number | null; completionTokens: number | null } | null,
+  next: { promptTokens: number | null; completionTokens: number | null } | null,
+) {
+  if (!total) return next;
+  if (!next) return total;
+  const sum = (a: number | null, b: number | null) => (a === null && b === null ? null : (a ?? 0) + (b ?? 0));
+  return { promptTokens: sum(total.promptTokens, next.promptTokens), completionTokens: sum(total.completionTokens, next.completionTokens) };
 }

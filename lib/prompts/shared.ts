@@ -39,6 +39,10 @@ export function languageRules(language: DraftLanguage, text: string): string {
  * in groups A–F). Sent per chunk, so kept to one line per group of patterns.
  */
 export const HUMANIZER_ZH_PATTERNS = [
+  "保留优先，高于下面的清单：",
+  "· 专业术语、研究方法名称（如混合研究方法、半结构化访谈）、理论、模型、量表和概念名一律原样保留，不删、不换近义词。",
+  "· 带有作者判断、立场、局限或结论的句子可以压缩措辞，但不能整句删掉；只有不含任何信息的纯套话才能删。",
+  "· 以改写表达为主、删减为辅：每段至少保留原文约 75%~80% 的篇幅，不要大段删除。",
   "逐条检查下列 AI 写作痕迹（humanizer-zh 清单）。它们是检查线索，不是词语黑名单：命中且空泛、重复时才改，承担真实顺序、转折、因果的连接词保留。",
   "1. 填充套话：值得注意的是、值得一提的是、需要指出的是、具体而言、此外、与此同时、总而言之、综上所述、总的来说。没有承接作用就删掉，直接说事。",
   "2. 宏大铺垫与意义拔高：「随着……的飞速发展」式开头，「具有重要的理论意义和实践价值」「为……贡献力量」「标志着」「彰显了」「赋能」「时代命题」「有力回应」。删掉没有独立信息的拔高，只留原文给出的具体内容。",
@@ -46,7 +50,7 @@ export const HUMANIZER_ZH_PATTERNS = [
   "4. 强凑三段式与四字词堆叠：「科学性、准确性与可靠性」「全面、深入、立体」「理论、方法与实践层面」。只留有独立含义的项，空泛的合并或删去，不补新项。",
   "5. 模糊归因：没有引用标记的「研究表明」「有学者指出」「专家认为」，保留归因对象与不确定程度，不要改成确定事实，不要把「专家」换成「有人」，也不要补造出处。",
   "6. 宣传腔与高频词：至关重要、深入探讨、全新的可能、亟需、不可或缺、日益受到广泛关注。换成平实、准确的说法（统计意义上的「显著」照常保留）。",
-  "7. 空泛收尾与展望：「是每一位……都需要深思的问题」「必将成为未来研究的重要方向」「在理论、方法与实践层面深入探讨」「让我们拭目以待」。纯套话就删；其中有作者真实的判断或问题时，压成一句平实的话，不要整句删掉，也不要补写原文没有的具体方向。",
+  "7. 空泛收尾与展望：「是每一位……都需要深思的问题」「必将成为未来研究的重要方向」「在理论、方法与实践层面深入探讨」「让我们拭目以待」。只删纯套话部分；其中有作者的判断、立场或问题时必须保留，改成一句平实的话，不要补写原文没有的具体方向。",
   "8. 过度对冲：「也许可能」「在一定程度上或许」，同一层不确定只写一次；样本范围、尚未验证等真实限定必须保留。",
   "9. 标点与排版：不用破折号、冒号、加粗或引号制造强调和悬念。",
   "10. 节奏与句式：句长不要整齐划一，长短句交替；相邻句不要同一开头；「对……进行+动词」换成直接动词；层叠的「的」拆开；不要逐句换同义词。",
@@ -56,13 +60,17 @@ export const HUMANIZER_ZH_PATTERNS = [
 
 /** English tells from blader/humanizer SKILL.md (groups A–F), trimmed for academic prose. */
 export const HUMANIZER_EN_PATTERNS = [
+  "Preservation comes first and overrides the checklist below:",
+  "- Keep technical terms, method names (e.g. mixed-methods design, semi-structured interviews), theories, models, scales and concept names verbatim; do not drop them or swap synonyms.",
+  "- Sentences carrying the author's judgment, stance, limitation or conclusion may be condensed but never deleted whole; only pure filler with no information may be cut.",
+  "- Rephrase rather than delete: keep at least about 75-80% of each paragraph's length.",
   "For English, check these AI-writing tells (blader/humanizer list); edit only where they add nothing:",
   "1. Filler and signposting: It is worth noting that, Notably, Importantly, Additionally, Moreover, Furthermore, It is important to acknowledge, Ultimately, In conclusion. Cut them and state the point.",
   "2. Not X but Y / not only X but also Y used only for weight. State the claim directly.",
   "3. Inflated significance and AI vocabulary: pivotal, crucial, key (adj.), underscore, highlight (verb), delve, intricate, interplay, landscape, tapestry, testament, paradigm shift, pave the way, shed light on, foster, cultivate, enhance, showcase, robust (figurative). Use plain words.",
   "4. Shallow -ing riders (\", highlighting/ensuring/fostering ...\") and forced triads: keep only items that carry distinct meaning; never add items.",
   "5. Borrowed authority without a citation (Experts argue, Studies show): keep who is credited and the uncertainty (do not swap experts for \"some\"); do not invent sources or turn it into fact.",
-  "6. Empty closers and future-outlook endings, one-line restatements: cut pure filler; if the closer carries a real judgment, keep it as one plain sentence; never add specifics the source lacks.",
+  "6. Empty closers and future-outlook endings, one-line restatements: cut only the filler part; a real judgment, stance or question in it must stay as one plain sentence; never add specifics the source lacks.",
   "7. Em/en dashes as connectors, decorative bold or colons: rewrite with commas, periods, or parentheses.",
   "8. Stacked hedges (could potentially, may possibly): one hedge per uncertainty; keep real hedges and limitations.",
   "9. Rhythm: vary sentence length, avoid repeated sentence openings and synonym cycling.",
@@ -77,8 +85,8 @@ export function humanizePatternRules(language: DraftLanguage, text: string): str
 /** Lighter reminder for rewrite so a rewrite does not introduce AI tells. */
 export function rewriteStyleRules(language: DraftLanguage, text: string): string {
   return isChineseDraft(language, text)
-    ? "改写时不要引入 AI 写作痕迹：「值得注意的是」「此外」「综上所述」类填充词，「不仅……而且」「不是……而是」式假对比，凑三排比和四字词堆叠，「具有重要意义」「赋能」类拔高与宣传腔，无出处的「研究表明」，空泛的结尾展望，破折号强调。句长要有长短变化，直接陈述。"
-    : "Do not introduce AI-writing tells: filler (It is worth noting, Moreover, Ultimately), not-only-but-also contrasts, forced triads, inflated words (pivotal, crucial, underscore, delve, landscape, pave the way), uncited 'studies show', empty future-outlook closers, em dashes. Vary sentence length; state claims directly.";
+    ? "改写时不要引入 AI 写作痕迹：「值得注意的是」「此外」「综上所述」类填充词，「不仅……而且」「不是……而是」式假对比，凑三排比和四字词堆叠，「具有重要意义」「赋能」类拔高与宣传腔，无出处的「研究表明」，空泛的结尾展望，破折号强调。句长要有长短变化，直接陈述。专业术语、方法名和概念名原样保留。"
+    : "Do not introduce AI-writing tells: filler (It is worth noting, Moreover, Ultimately), not-only-but-also contrasts, forced triads, inflated words (pivotal, crucial, underscore, delve, landscape, pave the way), uncited 'studies show', empty future-outlook closers, em dashes. Vary sentence length; state claims directly. Keep technical terms and method names verbatim.";
 }
 
 /** Model replies sometimes copy the payload's block header into the text. */

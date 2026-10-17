@@ -7,7 +7,7 @@ function stub(partial: Partial<PaperRecord> & Pick<PaperRecord, "id" | "title" |
   return {
     createdAt: 1,
     updatedAt: 2,
-    status: "draft",
+    status: "pending",
     configVersion: "1",
     model: "x",
     promptVersion: "1",

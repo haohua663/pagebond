@@ -110,6 +110,26 @@ describe("prompts and credentials", () => {
     expect(en).toMatch(/75-80%/);
   });
 
+  it("lists half-inflated tails as deletable filler and hedges uncited 研究表明", () => {
+    const zh = humanizeMessages(parseProse("一段中文。").blocks, { ...emptyOptions(), language: "zh" }, []).system;
+    for (const pattern of [
+      /以推进\/助力\/赋能\/服务于……转型\/发展\/建设/,
+      /为……贡献力量\/提供参考\/奠定基础/,
+      /理论、方法与实践层面继续讨论/,
+      /有一定参考价值/,
+      /「可见，」「因此，」/,
+      /没有引用标记的「研究表明」.*改成带保留的「有研究显示」/,
+      /纯套话尾巴不算信息/,
+      /守住/,
+    ]) {
+      expect(zh).toMatch(pattern);
+    }
+    const en = humanizeMessages(parseProse("English text.").blocks, { ...emptyOptions(), language: "en" }, []).system;
+    expect(en).toMatch(/provide a basis for further research/);
+    expect(en).toMatch(/pave the way/);
+    expect(en).toMatch(/filler tails .* is fine/);
+  });
+
   it("keeps the humanize prompt compact enough to send per chunk", () => {
     const doc = parseProse("一段中文。");
     const system = humanizeMessages(doc.blocks, { ...emptyOptions(), language: "zh" }, []).system;

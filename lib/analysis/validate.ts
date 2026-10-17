@@ -248,8 +248,8 @@ export function checkRewriteWithTerms(
   return { ...result, blocks };
 }
 
-/** Humanize may trim filler, but a paragraph shorter than this share of the source is retried once. */
-export const HUMANIZE_MIN_LENGTH_RATIO = 0.7;
+/** Humanize may trim filler tails, but a paragraph below this share of the source length is retried once. */
+export const HUMANIZE_MIN_LENGTH_RATIO = 0.65;
 /** Paragraphs shorter than this (non-space chars) are too small for a meaningful ratio. */
 const SHRINK_MIN_SOURCE_CHARS = 40;
 

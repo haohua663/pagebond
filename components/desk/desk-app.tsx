@@ -1589,17 +1589,20 @@ function ManuscriptCollapse({
   useEffect(() => {
     if (preferOpen) setOpen(true);
   }, [preferOpen]);
-  const snippet = preview.replace(/\s+/g, " ").trim().slice(0, 72);
+  void title;
+  void charCount;
+  void unit;
+  void preview;
   return (
     <div className="mt-4" data-testid="manuscript-collapse">
       <button
         type="button"
-        className="flex w-full min-h-11 cursor-pointer items-start gap-3 rounded-xl border border-line bg-paper/70 px-3 py-3 text-left hover:bg-paper"
+        className="flex w-full min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-line bg-paper/70 px-3 py-3 text-left hover:bg-paper"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
       >
         <span
-          className={`mt-1 inline-flex size-5 shrink-0 items-center justify-center text-ink-soft transition-transform ${open ? "rotate-90" : ""}`}
+          className={`inline-flex size-5 shrink-0 items-center justify-center text-ink-soft transition-transform ${open ? "rotate-90" : ""}`}
           aria-hidden
         >
           <svg viewBox="0 0 20 20" className="size-4 fill-current" aria-hidden>
@@ -1607,9 +1610,7 @@ function ManuscriptCollapse({
           </svg>
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-ink">{title} · {charCount} {unit}</span>
-          {!open && snippet ? <span className="mt-1 block truncate text-sm text-ink-soft">{snippet}{preview.length > 72 ? "…" : ""}</span> : null}
-          <span className="mt-1 block text-sm text-ink-soft">{open ? "收起正文" : "展开正文"}</span>
+          <span className="block text-ink">{open ? "收起正文" : "展开正文"}</span>
         </span>
       </button>
       {open ? <div className="mt-3">{children}</div> : null}

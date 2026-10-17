@@ -70,6 +70,17 @@ export function checkRewrite(original: DocumentBlock[], output: ParagraphRewrite
   const blocks: BlockCheck[] = original.map((block) => {
     const item = byId.get(block.id);
     const reasons: string[] = [];
+    // Headings and structure markers are never rewritten: always keep the original text.
+    if (block.kind === "heading") {
+      return {
+        id: block.id,
+        status: "passed" as const,
+        reasons: [],
+        text: block.text,
+        suggestedText: block.text,
+        changed: false,
+      };
+    }
     if (!item || !item.text.trim()) {
       reasons.push(item ? "这一段的输出是空的" : "这一段没有返回");
       return {
@@ -92,6 +103,10 @@ export function checkRewrite(original: DocumentBlock[], output: ParagraphRewrite
     const lost = missingProtections(block.protections, item.text);
     if (lost.length) {
       reasons.push(`保护项被改动：${lost.map((part) => part.text).join("、")}`);
+    }
+    const marker = leadingMarker(block.text);
+    if (marker && !item.text.trimStart().startsWith(marker)) {
+      reasons.push(`段首结构标记被改动：${marker}`);
     }
     if (block.locked && item.text !== block.text) {
       reasons.push("这一段已锁定，不能改写");
@@ -139,6 +154,15 @@ export function checkRewrite(original: DocumentBlock[], output: ParagraphRewrite
     integrity: issues.length ? "failed" : "passed",
     issues,
   };
+}
+
+const MARKER_PATTERN =
+  /^\s*((?:第[一二三四五六七八九十百零〇\d]+[章节部分条篇]|[（(][一二三四五六七八九十\d]+[)）]|[一二三四五六七八九十]+[、.．]|\d+(?:\.\d+)+[、.．)）]?|\d+[、.．)）]|[A-Za-z][.)]|[IVXLC]+\.|[-*•·●▪◦]|#{1,6})(?=\s|[\u4e00-\u9fff]|$))/;
+
+/** Leading structure marker such as "1.2", "（一）", "第三章", "-", "#". */
+export function leadingMarker(text: string): string {
+  const match = MARKER_PATTERN.exec(text);
+  return match ? match[1] : "";
 }
 
 export function applyLockedTerms(blocks: DocumentBlock[], terms: string[]): DocumentBlock[] {

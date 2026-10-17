@@ -231,7 +231,7 @@ export function parseProse(text: string): ParsedDocument {
       kind = "reference";
       locked = true;
     }
-    if (kind === "formula" || kind === "quote" || kind === "table") locked = true;
+    if (kind === "heading" || kind === "formula" || kind === "quote" || kind === "table") locked = true;
     if (/^\[\^[^\]]+\]:/.test(block.text) || /\[\^[^\]]+\]/.test(block.text)) {
       locked = true;
       unsupported.push(`脚注未按脚注处理：${block.text.slice(0, 40)}`);

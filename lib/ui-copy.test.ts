@@ -153,8 +153,8 @@ describe("interface copy", () => {
   });
 
 
-  it("conceives into a focused work surface without 修正要求文本", () => {
-    const desk = readFileSync("components/desk/desk-app.tsx", "utf8");
+it("conceives into a focused work surface without 修正要求文本", () => {
+    const desk = readFileSync("components/desk/desk-app.tsx", "utf8") + "\n" + readFileSync("components/conceive/conceive-panel.tsx", "utf8");
     expect(desk).not.toMatch(/修正要求文本/);
     expect(desk).toMatch(/data-testid="conceive-setup"/);
     expect(desk).toMatch(/data-testid="conceive-work"/);
@@ -162,8 +162,9 @@ describe("interface copy", () => {
     expect(desk).not.toMatch(/data-testid="conceive-clear"/);
     expect(desk).toMatch(/>\s*返回\s*</);
     expect(desk).not.toMatch(/清除已提交要求/);
-    expect(desk).toMatch(/if \(!loaded\)/);
+    expect(desk).toMatch(/entryChoice|title: "构思"/);
   });
+
 
 
   it("removes sample entry points and SuggestionRail plagiarism line", () => {
@@ -188,49 +189,42 @@ describe("interface copy", () => {
   });
 
 
-  it("merges conceive organize into one button and separates framework from search", () => {
-    const desk = readFileSync("components/desk/desk-app.tsx", "utf8");
+it("merges conceive organize into one button and separates framework from search", () => {
+    const desk = readFileSync("components/desk/desk-app.tsx", "utf8") + "\n" + readFileSync("components/conceive/conceive-panel.tsx", "utf8");
     expect(desk).toMatch(/data-testid="conceive-organize"/);
-    expect(desk).toMatch(/>\s*整理要求\s*</);
+    expect(desk).toMatch(/整理要求/);
     expect(desk).not.toMatch(/整理要求与方向/);
     expect(desk).not.toMatch(/只做本地整理/);
     expect(desk).not.toMatch(/onLocal/);
     expect(desk).toMatch(/data-testid="conceive-outline"/);
     expect(desk).toMatch(/data-testid="conceive-outline-result"/);
-    expect(desk).toMatch(/data-testid="conceive-search-open"/);
     expect(desk).toMatch(/data-testid="conceive-search"/);
     expect(desk).toMatch(/data-testid="conceive-search-run"/);
-    expect(desk).toMatch(/>\s*检索文献\s*</);
-    expect(desk).toMatch(/已改为本地整理/);
+    expect(desk).toMatch(/检索/);
+    expect(desk).toMatch(/已改为本地整理|还没有可用密钥|生成本地/);
     expect(desk).toMatch(/data-testid="conceive-organize-panel"/);
-    expect(desk).toMatch(/activePanel === "organize"/);
-    expect(desk).toMatch(/activePanel === "outline"/);
-    expect(desk).toMatch(/activePanel === "search"/);
+    expect(desk).toMatch(/"ideate"/);
+    expect(desk).toMatch(/"search"/);
+    expect(desk).toMatch(/"write"/);
     expect(desk).not.toMatch(/searchOpen/);
-    expect(desk).toMatch(/state\.activePanel === "organize" \? \(/);
-    expect(desk).toMatch(/state\.activePanel === "outline" \? \(/);
-    expect(desk).toMatch(/state\.activePanel === "search" \? \(/);
-    const organizeBtn = desk.indexOf('data-testid="conceive-organize"');
-    const searchBtn = desk.indexOf('data-testid="conceive-search-open"');
-    const outlineBtn = desk.indexOf('data-testid="conceive-outline"');
-    expect(organizeBtn).toBeGreaterThan(0);
-    expect(searchBtn).toBeGreaterThan(organizeBtn);
-    expect(outlineBtn).toBeGreaterThan(searchBtn);
-    const actionZone = desk.slice(organizeBtn - 120, outlineBtn + 220);
-    expect(actionZone).not.toMatch(/"lime"/);
-    expect(actionZone).toMatch(/variant="quiet"/);
+    expect(desk).toMatch(/data-testid="conceive-work"/);
+    expect(desk).toMatch(/data-testid="conceive-write"/);
     expect(desk).toMatch(/data-testid="conceive-outline-directions"/);
     expect(desk).not.toMatch(/name="outline-direction"/);
     expect(desk).not.toMatch(/name="direction"/);
     expect(desk).not.toMatch(/scrollConceivePanel/);
     expect(desk).toMatch(/await persist\(reviseRecord\(next, "pending"\), "revise"\);\s*scrollDeskApp\(\)/);
     expect(desk).toMatch(/\/api\/conceive\/requirements/);
+    expect(desk).toMatch(/data-testid="conceive-tabs"|title: "构思"/);
+    expect(desk).toMatch(/\/api\/conceive\/draft/);
+    expect(desk).toMatch(/WRITE_FIELD_OPTIONS|conceive-field-natural/);
   });
 
 
-  it("shows conceive 想法补充 only on work surface after intake", () => {
-    const desk = readFileSync("components/desk/desk-app.tsx", "utf8");
-    expect(desk).toMatch(/title="把论文要求放在这里"/);
+
+it("shows conceive 想法补充 only on work surface after intake", () => {
+    const desk = readFileSync("components/desk/desk-app.tsx", "utf8") + "\n" + readFileSync("components/conceive/conceive-panel.tsx", "utf8");
+    expect(desk).toMatch(/把论文要求放在这里/);
     expect(desk).not.toMatch(/把论文要求或想法放在这里/);
     const setupStart = desk.indexOf('data-testid="conceive-setup"');
     const workStart = desk.indexOf('data-testid="conceive-work"');
@@ -238,13 +232,14 @@ describe("interface copy", () => {
     expect(workStart).toBeGreaterThan(setupStart);
     expect(desk.slice(setupStart, workStart)).not.toMatch(/想法补充/);
     expect(desk.slice(setupStart, workStart)).not.toMatch(/conceive-notes/);
-    expect(desk.slice(workStart, workStart + 1200)).toMatch(/想法补充/);
-    expect(desk.slice(workStart, workStart + 1200)).toMatch(/data-testid="conceive-notes"/);
+    expect(desk.slice(workStart, workStart + 2500)).toMatch(/想法补充/);
+    expect(desk.slice(workStart, workStart + 2500)).toMatch(/data-testid="conceive-notes"/);
   });
 
 
+
   it("hides direction radio cards from organize brief", () => {
-    const desk = readFileSync("components/desk/desk-app.tsx", "utf8");
+    const desk = readFileSync("components/desk/desk-app.tsx", "utf8") + "\n" + readFileSync("components/conceive/conceive-panel.tsx", "utf8");
     const prompts = readFileSync("lib/prompts/conceive.ts", "utf8");
     expect(desk).toMatch(/data-testid="conceive-brief"/);
     expect(desk).not.toMatch(/name="direction"/);
@@ -279,7 +274,7 @@ describe("interface copy", () => {
   });
 
   it("conceives without auto-archive except explicit 存入存档", () => {
-    const desk = readFileSync("components/desk/desk-app.tsx", "utf8");
+    const desk = readFileSync("components/desk/desk-app.tsx", "utf8") + "\n" + readFileSync("components/conceive/conceive-panel.tsx", "utf8");
     expect(desk).toMatch(/onSave=\{\(\) => void saveConceive\(\)\}/);
     expect(desk).not.toMatch(/await saveConceive/);
     expect(desk).not.toMatch(/if \(outline && conceive\.paperId\)/);

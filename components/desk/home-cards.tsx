@@ -14,7 +14,7 @@ const ITEMS: (HoverCardItem & { id: HomeCardId })[] = [
   {
     id: "translate",
     title: "翻译",
-    description: "中英互译与术语对照。即将推出。",
+    description: "中英学术互译。",
   },
   {
     id: "revise",
@@ -24,17 +24,17 @@ const ITEMS: (HoverCardItem & { id: HomeCardId })[] = [
   {
     id: "conceive",
     title: "起稿",
-    description: "整理要求、搭框架，文献检索走 OpenAlex。",
+    description: "构思、检索、写作。",
   },
   {
     id: "draw",
     title: "绘图",
-    description: "图示与版式辅助。即将推出。",
+    description: "学术图件方案、图注与示意图。",
   },
   {
     id: "present",
     title: "演示",
-    description: "幻灯与汇报稿。即将推出。",
+    description: "摘要/提纲生成汇报大纲与 HTML 幻灯。",
   },
   {
     id: "archive",
@@ -48,7 +48,7 @@ export function HomeCards({ onSelect }: { onSelect: (id: HomeCardId) => void }) 
     <section data-testid="desk-home" aria-label="工作台主页" className="min-w-0">
       <div className="mb-2 px-2">
         <h2 className="text-2xl font-semibold tracking-tight text-ink">选择一项工作</h2>
-        <p className="mt-1 text-sm text-ink-soft">改稿、起稿与存档可用；其余为占位。</p>
+        <p className="mt-1 text-sm text-ink-soft">翻译、改稿、起稿、绘图、演示与存档可用。</p>
       </div>
       <HoverEffect
         items={ITEMS}

@@ -2,6 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { ArchivePanel } from "@/components/archive/archive-panel";
+import { TranslatePanel } from "@/components/translate/translate-panel";
+import { DrawPanel } from "@/components/draw/draw-panel";
+import { PresentPanel } from "@/components/present/present-panel";
+import { ConceivePanel, type SectionDraft } from "@/components/conceive/conceive-panel";
+import type { WriteField } from "@/lib/conceive/field-guides";
+import { localSectionDraft } from "@/lib/workflows/local-draft";
 import { ComingSoonPanel, HomeCards, type HomeCardId } from "@/components/desk/home-cards";
 import { WorkbenchRail, type RailAction } from "@/components/desk/workbench-rail";
 import { ManuscriptPane } from "@/components/manuscript/manuscript-pane";
@@ -145,7 +151,12 @@ interface ConceiveState {
   direction: string;
   literature: LiteratureQueryResult[];
   queries: string;
-  activePanel: "organize" | "outline" | "search" | null;
+  activePanel: "ideate" | "search" | "write" | null;
+  entryChoice: "ideate" | "search" | "write" | null;
+  searchCommitted: boolean;
+  writeField: WriteField | null;
+  drafts: Record<string, SectionDraft>;
+  draftHeading: string;
   modelError: string | null;
   running: boolean;
   saveState: "未保存" | "已保存" | "尚未保存";
@@ -192,6 +203,11 @@ function freshConceive(): ConceiveState {
     literature: [],
     queries: "",
     activePanel: null,
+    entryChoice: null,
+    searchCommitted: false,
+    writeField: null,
+    drafts: {},
+    draftHeading: "",
     modelError: null,
     running: false,
     saveState: "未保存",
@@ -464,9 +480,11 @@ export function DeskApp() {
           brief: null,
           outline: null,
           literature: [],
+          drafts: {},
+          draftHeading: "",
           direction: "",
           queries: "",
-          activePanel: null,
+          activePanel: current.entryChoice === "search" ? "search" : current.entryChoice === "write" ? "write" : current.entryChoice === "ideate" ? "ideate" : null,
           consent: "",
           modelError: null,
         }));
@@ -509,9 +527,11 @@ export function DeskApp() {
         brief: null,
         outline: null,
         literature: [],
+        drafts: {},
+        draftHeading: "",
         direction: "",
         queries: "",
-        activePanel: null,
+        activePanel: current.entryChoice === "search" ? "search" : current.entryChoice === "write" ? "write" : current.entryChoice === "ideate" ? "ideate" : null,
         consent: "",
         error: null,
         modelError: null,
@@ -1059,11 +1079,192 @@ export function DeskApp() {
         ...current,
         literature: [],
         outline,
+        searchCommitted: true,
         modelError: data.message || "检索失败。",
       }));
       return;
     }
-    setConceive((current) => ({ ...current, literature: data.results as LiteratureQueryResult[], outline, modelError: null }));
+    setConceive((current) => ({ ...current, literature: data.results as LiteratureQueryResult[], outline, searchCommitted: true, modelError: null, activePanel: "search", entryChoice: current.entryChoice || "search" }));
+  }
+
+
+
+  async function runIdeate() {
+    const text = conceive.loaded?.editText || conceive.paste;
+    if (!text.trim() && !conceive.notes.trim()) {
+      setConceive((current) => ({ ...current, error: "要求文件和补充至少要有一项。" }));
+      return;
+    }
+    setConceive((current) => ({
+      ...current,
+      running: true,
+      modelError: null,
+      error: null,
+      activePanel: current.entryChoice === "write" ? "write" : "ideate",
+      entryChoice: current.entryChoice || "ideate",
+    }));
+
+    // Stage 1: requirements
+    let brief = conceive.brief;
+    if (needsKey) {
+      brief = localRequirements(text, conceive.notes);
+    } else {
+      const reqData = await postJson(
+        "/api/conceive/requirements",
+        { requirementText: text, notes: conceive.notes, model, options: { articleType: "course" } },
+        sessionKey,
+        setQuota,
+        sessionBaseUrl,
+      );
+      if (reqData.ok) {
+        brief = { ...(reqData.brief as RequirementsBrief), origin: "model" };
+      } else {
+        brief = localRequirements(text, conceive.notes);
+        setConceive((current) => ({
+          ...current,
+          modelError: `${reqData.message || "要求整理未完成。"} 已用本地整理。`,
+        }));
+      }
+    }
+    const directionTitle = brief?.directions[0]?.title || conceive.direction || "";
+
+    // Stage 2: outline
+    let outline = conceive.outline;
+    let note: string | null = needsKey ? "还没有可用密钥，已生成本地整理与框架。" : null;
+    if (needsKey) {
+      outline = localOutline(brief!, { directionTitle, assumptions: brief!.assumptions });
+    } else {
+      const data = await postJson(
+        "/api/conceive/outline",
+        {
+          requirementText: text,
+          notes: conceive.notes,
+          directionTitle,
+          assumptions: brief?.assumptions || [],
+          model,
+          options: { articleType: "course" },
+        },
+        sessionKey,
+        setQuota,
+        sessionBaseUrl,
+      );
+      if (data.ok) {
+        outline = data.outline as OutlineDraft;
+      } else {
+        outline = localOutline(brief!, { directionTitle, assumptions: brief!.assumptions });
+        note = [note, `${data.message || "框架未完成。"} 已用本地框架。`].filter(Boolean).join(" ");
+      }
+    }
+
+    setConceive((current) => ({
+      ...current,
+      running: false,
+      brief: brief!,
+      direction: directionTitle,
+      outline: outline!,
+      queries: outline!.literatureQueries.join("\n"),
+      draftHeading: current.draftHeading || outline!.sections[0]?.heading || "",
+      activePanel: current.entryChoice === "write" ? "write" : "ideate",
+      modelError: note,
+    }));
+    scheduleOutlinePanelScroll();
+  }
+
+  function openConceiveWrite() {
+    setConceive((current) => {
+      const first = current.outline?.sections[0]?.heading || current.draftHeading || "";
+      return {
+        ...current,
+        activePanel: "write",
+        draftHeading: current.draftHeading || first,
+        modelError: current.outline ? null : "请先在「构思」生成框架。",
+      };
+    });
+  }
+
+  async function runDraftSection() {
+    const text = conceive.loaded?.editText || conceive.paste;
+    const outline = conceive.outline;
+    const heading = conceive.draftHeading;
+    if (!outline) {
+      setConceive((current) => ({ ...current, activePanel: "write", modelError: "请先生成框架再写作。" }));
+      return;
+    }
+    const section = outline.sections.find((item) => item.heading === heading) || outline.sections[0];
+    if (!section) {
+      setConceive((current) => ({ ...current, modelError: "框架里还没有可写的章节。" }));
+      return;
+    }
+    setConceive((current) => ({
+      ...current,
+      running: true,
+      activePanel: "write",
+      draftHeading: section.heading,
+      modelError: null,
+    }));
+
+    if (needsKey) {
+      const draft = localSectionDraft(section, outline.theme);
+      setConceive((current) => ({
+        ...current,
+        running: false,
+        drafts: { ...current.drafts, [section.heading]: draft },
+        modelError: "还没有可用密钥，已生成本地章节骨架。",
+      }));
+      return;
+    }
+
+    const literature = conceive.literature.flatMap((result) =>
+      result.items.map((item) => ({
+        title: item.title,
+        authors: item.authors.join(", "),
+        year: item.year == null ? "" : String(item.year),
+        doi: item.doi,
+        openalexId: item.openalexId,
+        venue: item.venue,
+      })),
+    );
+
+    if (!conceive.writeField) {
+      setConceive((current) => ({ ...current, running: false, modelError: "请先选择写作领域方向。" }));
+      return;
+    }
+
+    const data = await postJson(
+      "/api/conceive/draft",
+      {
+        requirementText: text,
+        notes: conceive.notes,
+        theme: outline.theme,
+        scope: outline.scope,
+        section,
+        literature,
+        writeField: conceive.writeField,
+        model,
+      },
+      sessionKey,
+      setQuota,
+      sessionBaseUrl,
+    );
+
+    if (!data.ok) {
+      const draft = localSectionDraft(section, outline.theme);
+      setConceive((current) => ({
+        ...current,
+        running: false,
+        drafts: { ...current.drafts, [section.heading]: draft },
+        modelError: `${data.message || "模型没有写出本节。"} 已生成本地骨架。`,
+      }));
+      return;
+    }
+
+    const draft = data.draft as SectionDraft;
+    setConceive((current) => ({
+      ...current,
+      running: false,
+      drafts: { ...current.drafts, [section.heading]: draft },
+      modelError: null,
+    }));
   }
 
   async function saveConceive(outline = conceive.outline, literature = conceive.literature) {
@@ -1097,6 +1298,7 @@ export function DeskApp() {
         brief: conceive.brief,
         outline,
         literature,
+        drafts: conceive.drafts,
       },
     };
     setConceive((current) => ({ ...current, paperId }));
@@ -1171,10 +1373,11 @@ export function DeskApp() {
   const showHome = mode === "home" && !viewing && !settingsOpen;
   const showReviseWork = mode === "revise" && !viewing && !settingsOpen;
   const showConceiveWork = mode === "conceive" && !viewing && !settingsOpen;
-  const showComingSoon =
-    (mode === "translate" || mode === "draw" || mode === "present") && !viewing && !settingsOpen;
-  const comingSoonTitle =
-    mode === "translate" ? "翻译" : mode === "draw" ? "绘图" : mode === "present" ? "演示" : "";
+  const showTranslateWork = mode === "translate" && !viewing && !settingsOpen;
+  const showDrawWork = mode === "draw" && !viewing && !settingsOpen;
+  const showPresentWork = mode === "present" && !viewing && !settingsOpen;
+  const showComingSoon = false;
+  const comingSoonTitle = "";
   const railActive: "home" | "work" | "none" = settingsOpen
     ? "none"
     : mode === "home"
@@ -1249,7 +1452,7 @@ export function DeskApp() {
         </header>
       ) : null}
       <div
-        className={`desk-workbench${settingsOpen ? " desk-workbench-stretch" : ""}${showHome || showComingSoon ? " desk-workbench-home" : ""}`}
+        className={`desk-workbench${settingsOpen ? " desk-workbench-stretch" : ""}${showHome || showComingSoon || showTranslateWork || showDrawWork || showPresentWork || showConceiveWork ? " desk-workbench-home" : ""}`}
       >
         <WorkbenchRail
           active={railActive}
@@ -1292,6 +1495,30 @@ export function DeskApp() {
           ) : null}
           {showHome ? <HomeCards onSelect={selectHomeCard} /> : null}
           {showComingSoon ? <ComingSoonPanel title={comingSoonTitle} /> : null}
+          {showTranslateWork ? (
+            <TranslatePanel
+              sessionKey={sessionKey}
+              model={model}
+              sessionBaseUrl={sessionBaseUrl}
+              onOpenSettings={openSettings}
+            />
+          ) : null}
+          {showDrawWork ? (
+            <DrawPanel
+              sessionKey={sessionKey}
+              model={model}
+              sessionBaseUrl={sessionBaseUrl}
+              onOpenSettings={openSettings}
+            />
+          ) : null}
+          {showPresentWork ? (
+            <PresentPanel
+              sessionKey={sessionKey}
+              model={model}
+              sessionBaseUrl={sessionBaseUrl}
+              onOpenSettings={openSettings}
+            />
+          ) : null}
           {showReviseWork ? (
             <ReviseMain
               state={revise}
@@ -1322,22 +1549,14 @@ export function DeskApp() {
             />
           ) : null}
           {showConceiveWork ? (
-            <ConceiveMain
+            <ConceivePanel
               state={conceive}
-              setConceive={setConceive}
+              setConceive={setConceive as never}
               onFile={(file) => void readFile(file, "conceive")}
               onUsePaste={() => usePaste("conceive")}
-              onRequirements={() => void runRequirements()}
-              onOutline={() => void runOutline()}
-              onOpenSearch={() =>
-                setConceive((current) => {
-                  const queries =
-                    current.queries.trim() ||
-                    (current.outline?.literatureQueries.join("\n") ?? "");
-                  return { ...current, activePanel: "search", queries };
-                })
-              }
+              onIdeate={() => void runIdeate()}
               onSearch={() => void searchLiterature()}
+              onDraft={() => void runDraftSection()}
               onSave={() => void saveConceive()}
               onBack={() =>
                 setConceive((current) => ({
@@ -1346,16 +1565,20 @@ export function DeskApp() {
                   brief: null,
                   outline: null,
                   literature: [],
+                  drafts: {},
+                  draftHeading: "",
                   direction: "",
                   queries: "",
+                  searchCommitted: false,
+                  writeField: null,
                   activePanel: null,
+                  entryChoice: null,
                   consent: "",
                   error: null,
                   modelError: null,
                   running: false,
                 }))
               }
-              model={model}
               onOpenSettings={openSettings}
             />
           ) : null}
@@ -1388,7 +1611,7 @@ export function DeskApp() {
         </main>
         <div
           className={
-            settingsOpen || suggestionsOpen || (showReviseWork && revise.confirmed) || showConceiveWork
+            settingsOpen || suggestionsOpen || (showReviseWork && revise.confirmed)
               ? "block lg:block"
               : "hidden"
           }
@@ -1400,7 +1623,7 @@ export function DeskApp() {
               onOpen={openSuggestion}
             />
           ) : null}
-          {showConceiveWork ? <ConceiveRail state={conceive} /> : null}
+          {/* conceive uses full-width panel; rail removed */}
           {settingsOpen ? (
             <div className="flex h-full flex-col justify-between gap-3" data-testid="settings-rail">
               {routeStatus || (keySource === "server" && quota) ? (
@@ -1755,262 +1978,6 @@ function ReviseOptions({
         确认输入
       </Button>
     </section>
-  );
-}
-
-function ConceiveMain({
-  state,
-  setConceive,
-  onFile,
-  onUsePaste,
-  onRequirements,
-  onOutline,
-  onOpenSearch,
-  onSearch,
-  onSave,
-  onBack,
-  model,
-  onOpenSettings,
-}: {
-  state: ConceiveState;
-  setConceive: Dispatch<SetStateAction<ConceiveState>>;
-  onFile: (file: File) => void;
-  onUsePaste: () => void;
-  onRequirements: () => void;
-  onOutline: () => void;
-  onOpenSearch: () => void;
-  onSearch: () => void;
-  onSave: () => void;
-  onBack: () => void;
-  model: string;
-  onOpenSettings: () => void;
-}) {
-  const text = state.loaded?.editText || state.paste;
-  const loaded = state.loaded;
-  if (!loaded) {
-    return (
-      <div className="space-y-4" data-testid="conceive-setup">
-        <IntakeWell
-          testId="intake-conceive"
-          title="把论文要求放在这里"
-          fileName=""
-          error={state.error}
-          paste={state.paste}
-          onPaste={(value) => setConceive((current) => ({ ...current, paste: value }))}
-          onUsePaste={onUsePaste}
-          onFile={onFile}
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-4" data-testid="conceive-work">
-      <section className="desk-card p-4 sm:p-6">
-        <div className="flex flex-wrap items-center gap-2">
-          {loaded.source === "paste" ? null : (
-            <p className="text-ink">
-              {loaded.fileName} · {loaded.parsed.stats.chars} 字 · 当前是文件
-            </p>
-          )}
-          <Button type="button" variant="quiet" onClick={onBack} data-testid="conceive-back">
-            返回
-          </Button>
-        </div>
-        <label className="mt-4 block" htmlFor="conceive-notes-work">
-          想法补充
-          <textarea
-            id="conceive-notes-work"
-            data-testid="conceive-notes"
-            className="desk-input manuscript mt-2 w-full p-3"
-            rows={4}
-            value={state.notes}
-            onChange={(event) => setConceive((current) => ({ ...current, notes: event.target.value }))}
-          />
-        </label>
-        {state.modelError ? (
-          <div className="mt-3">
-            <p role="alert" className="rounded-xl border border-line bg-sunk/80 px-3 py-2">
-              {state.modelError}
-            </p>
-            <MissingKeyLink message={state.modelError} onOpen={onOpenSettings} />
-          </div>
-        ) : null}
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="quiet"
-            className={state.activePanel === "organize" ? "ring-1 ring-line bg-paper" : undefined}
-            disabled={state.running}
-            onClick={onRequirements}
-            data-testid="conceive-organize"
-          >
-            整理要求
-          </Button>
-          <Button
-            type="button"
-            variant="quiet"
-            className={state.activePanel === "search" ? "ring-1 ring-line bg-paper" : undefined}
-            onClick={onOpenSearch}
-            data-testid="conceive-search-open"
-          >
-            检索文献
-          </Button>
-          <Button
-            type="button"
-            variant="quiet"
-            className={state.activePanel === "outline" ? "ring-1 ring-line bg-paper" : undefined}
-            disabled={state.running}
-            onClick={onOutline}
-            data-testid="conceive-outline"
-          >
-            生成框架
-          </Button>
-          <Button type="button" variant="quiet" onClick={onSave}>
-            存入存档
-          </Button>
-        </div>
-      </section>
-      {state.activePanel === "organize" ? (
-        <section id="conceive-organize-panel" className="desk-card p-4 sm:p-6" data-testid="conceive-organize-panel">
-          {state.brief ? (
-            <BriefView brief={state.brief} />
-          ) : (
-            <p className="text-ink-soft">整理后，要求会出现在这里。</p>
-          )}
-        </section>
-      ) : null}
-      {state.activePanel === "search" ? (
-        <section id="conceive-search" className="desk-card p-4 sm:p-6" data-testid="conceive-search">
-          <h3 className="text-lg">检索文献</h3>
-          <p className="mt-1 text-sm text-ink-soft">每行一个检索词。只会把这些词发给 OpenAlex。</p>
-          <label className="mt-3 block">
-            检索词
-            <textarea
-              className="desk-input mt-2 w-full p-2"
-              rows={4}
-              data-testid="conceive-search-queries"
-              value={state.queries}
-              onChange={(event) => setConceive((current) => ({ ...current, queries: event.target.value }))}
-            />
-          </label>
-          <Button type="button" className="mt-2" variant="quiet" onClick={onSearch} data-testid="conceive-search-run">
-            开始检索
-          </Button>
-          <LiteratureList results={state.literature} />
-        </section>
-      ) : null}
-      {state.activePanel === "outline" ? (
-        <section id="conceive-outline-result" className="desk-card p-4 sm:p-6" data-testid="conceive-outline-result">
-          {state.brief?.directions?.length ? (
-            <div className="mb-4 space-y-3" data-testid="conceive-outline-directions">
-              <h3 className="text-lg">可行方向</h3>
-              <ul className="space-y-3">
-                {state.brief.directions.map((item) => (
-                  <li key={item.title} className="rounded-xl border border-line/80 bg-desk/40 px-3 py-3">
-                    <p className="text-ink">{item.title}</p>
-                    {item.question ? <p className="mt-1 text-sm text-ink-soft">{item.question}</p> : null}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-          {state.outline ? (
-            <>
-              <h3 className="text-lg">框架 {state.outline.origin === "local" ? "（本地，未调用模型）" : ""}</h3>
-              <p className="mt-2">{state.outline.theme}</p>
-              <p className="text-ink-soft">{state.outline.scope}</p>
-              <p className="mt-2">{state.outline.lengthNote}</p>
-              {state.outline.requirementsConflict ? <p>长度限制有冲突，这个草案不算已满足要求。</p> : null}
-              <ol className="mt-3 list-decimal pl-5">
-                {state.outline.sections.map((section) => (
-                  <li key={section.heading} className="mt-3">
-                    <p className="text-ink">{section.heading}</p>
-                    <p>目的：{section.purpose}</p>
-                    <p>拟写：{section.content}</p>
-                    <p>证据：{section.evidence}</p>
-                    <p>篇幅：{section.length}</p>
-                    {section.openQuestions.length ? <p>待决：{section.openQuestions.join("；")}</p> : null}
-                  </li>
-                ))}
-              </ol>
-            </>
-          ) : (
-            <p className="text-ink-soft">点「生成框架」后，可行方向与分节框架会出现在这里。</p>
-          )}
-        </section>
-      ) : null}
-    </div>
-  );
-}
-
-function BriefView({ brief }: { brief: RequirementsBrief }) {
-  return (
-    <div data-testid="conceive-brief">
-      <h3 className="text-lg">整理要求 {brief.origin === "local" ? "（本地整理，未调用模型）" : ""}</h3>
-      <ul className="mt-2 list-disc pl-5">
-        {brief.requirements.map((item) => (
-          <li key={`${item.source}-${item.text}`}>
-            {item.text}{" "}
-            <span className="text-ink-soft">
-              来自{item.source === "school" ? "要求" : item.source === "user" ? "补充" : item.source === "model" ? "模型建议" : "未标明"}
-            </span>
-          </li>
-        ))}
-      </ul>
-      <p className="mt-2">关键词：{brief.keywords.map((item) => `${item.term}（${item.source}）`).join("、") || "还没有"}</p>
-      {brief.conflicts.map((item) => (
-        <p key={item} className="mt-2 rounded-xl border border-line bg-desk/60 px-3 py-2 text-sm">
-          {item}
-        </p>
-      ))}
-      {brief.missing.map((item) => (
-        <p key={item}>还缺：{item}</p>
-      ))}
-    </div>
-  );
-}
-
-function LiteratureList({ results }: { results: LiteratureQueryResult[] }) {
-  if (!results.length) return null;
-  return (
-    <div className="mt-4">
-      <h3 className="text-lg">文献</h3>
-      <p className="text-sm text-ink-soft">来源 OpenAlex。结果不能代表全部中文学术文献。没有补写缺失字段。</p>
-      {results.map((result) => (
-        <section key={result.query} className="mt-3">
-          <p>
-            检索词「{result.query}」· {result.retrievedAt} ·{" "}
-            {result.status === "ok" ? "有结果" : result.status === "not_found" ? "未找到" : result.status === "quota" ? "额度不足" : "服务失败"}
-          </p>
-          <p className="text-ink-soft">{result.message}</p>
-          <ul className="mt-2 space-y-2">
-            {result.items.map((item) => (
-              <li key={item.openalexId} className="rounded-xl border border-line bg-desk/60 px-3 py-2 text-sm">
-                <p>{item.title}</p>
-                <p className="text-sm text-ink-soft">
-                  {item.authors.join(", ") || "作者未返回"} · {item.year ?? "年份未返回"} · {item.venue || "来源未返回"} ·{" "}
-                  {item.doi ? `DOI ${item.doi}` : "没有 DOI"} · {item.citedByCount ?? "引用数未返回"}
-                </p>
-                <a className="underline" href={item.url}>
-                  {item.openalexId}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
-    </div>
-  );
-}
-
-function ConceiveRail({ state }: { state: ConceiveState }) {
-  return (
-    <aside className="desk-card p-5">
-      <h2 className="text-lg">起稿</h2>
-      <p className="mt-2 text-ink-soft">先整理要求，再出框架。</p>
-      {state.outline ? <p className="mt-3">{state.outline.sections.length} 节框架在中间。</p> : null}
-    </aside>
   );
 }
 

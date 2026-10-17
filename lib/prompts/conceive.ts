@@ -49,3 +49,62 @@ export function outlineMessages(input: {
     ].join("\n"),
   };
 }
+
+export function draftSectionMessages(input: {
+  requirementText: string;
+  notes: string;
+  theme: string;
+  scope: string;
+  writeFieldLabel: string;
+  fieldGuide: string;
+  section: {
+    heading: string;
+    purpose: string;
+    content: string;
+    evidence: string;
+    length: string;
+    openQuestions: string[];
+  };
+  literature: { title: string; authors: string; year: string; doi: string | null; openalexId: string; venue: string }[];
+}) {
+  const litBlock =
+    input.literature.length === 0
+      ? "（本组没有检索命中。正文里不要出现作者-年份式引用，也不要编 DOI。）"
+      : input.literature
+          .map(
+            (item, i) =>
+              `[L${i + 1}] ${item.title} | ${item.authors || "作者未返回"} | ${item.year || "年份未返回"} | ${item.venue || "来源未返回"} | ${item.doi ? `DOI ${item.doi}` : "无 DOI"} | ${item.openalexId}`,
+          )
+          .join("\n");
+
+  return {
+    system: [
+      "你是学术起稿助手：证据先于文字，不编造。",
+      `写作领域：${input.writeFieldLabel || "其他"}。`,
+      "领域指南（来自仓库 skill，请遵守其不可逾越的边界）：",
+      input.fieldGuide.slice(0, 5000),
+      "只起草用户指定的一节，不写整篇论文，不假装已完成实验或已获伦理批件。",
+      "严禁编造文献、数据、DOI、批件号。只能引用下方「可用文献」列表中的条目，并用 [L#] 标记。",
+      "没有证据支撑的句子用「〔待核实〕」标明；缺材料写进 openGaps。",
+      "文风：中文、具体、短句；避免套话。",
+      "返回 JSON：heading、markdown、openGaps、citedIds（对应文献 id，可空）。",
+      "markdown 开头第一行必须是：> 草稿 · 不可投稿",
+    ].join("\n"),
+    user: [
+      `主题：${input.theme || "（未定）"}`,
+      `范围：${input.scope || "（未定）"}`,
+      `章节标题：${input.section.heading}`,
+      `目的：${input.section.purpose}`,
+      `拟写：${input.section.content}`,
+      `所需证据：${input.section.evidence}`,
+      `篇幅提示：${input.section.length}`,
+      `待决：${input.section.openQuestions.join("；") || "无"}`,
+      "可用文献（仅下列）：",
+      litBlock,
+      "要求原文摘录：",
+      input.requirementText.slice(0, 4000) || "（空）",
+      "用户补充：",
+      input.notes.slice(0, 2000) || "（空）",
+    ].join("\n"),
+  };
+}

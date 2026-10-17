@@ -50,7 +50,7 @@ const DEFAULT_PRODUCTS: HeroProduct[] = [
   {
     title: "Literature",
     accent: "linear-gradient(140deg, #f8f7f3 0%, #e2ddd4 50%, #c4bdb2 100%)",
-    lines: ["OpenAlex hints", "Cite carefully", "Stay on question"],
+    lines: ["Literature hints", "Cite carefully", "Stay on question"],
   },
   {
     title: "Protections",

@@ -3,6 +3,8 @@ export const LIMITS = {
   maxFileBytes: 15 * 1024 * 1024,
   /** Target cap from the plan. Exceeding it stops model work instead of truncating. */
   targetChars: 40_000,
+  /** Translate workbench input cap (~6 万汉字). */
+  translateChars: 60_000,
   /** Largest document the automated pipeline test keeps intact. */
   verifiedChars: 40_000,
   /** Source chars per rewrite chunk so a reply can cover every paragraph. */

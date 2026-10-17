@@ -50,6 +50,10 @@ export interface PaperRecord {
     brief: RequirementsBrief | null;
     outline: OutlineDraft | null;
     literature: LiteratureQueryResult[];
+    drafts?: Record<
+      string,
+      { heading: string; markdown: string; openGaps: string[]; citedIds: string[]; origin: "local" | "model" }
+    >;
   } | null;
 }
 

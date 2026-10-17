@@ -188,7 +188,7 @@ export function localOutline(
         heading: "待核对的文献",
         purpose: "给检索词，不编参考文献。",
         content: "文献要等检索结果。检索失败时这一节仍保留为待查。",
-        evidence: "OpenAlex 返回的字段，或标明未找到。",
+        evidence: "检索接口返回的字段，或标明未找到。",
         length: "短。",
         openQuestions: ["检索词是否需要作者再改。"],
       },

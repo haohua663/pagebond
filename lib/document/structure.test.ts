@@ -42,7 +42,7 @@ describe("parseProse", () => {
   it("does not drop paragraphs from a heading-less text", () => {
     const source = ["第一段说明样本为 40 人。", "第二段保持否定：差异不显著。", "第三段只报告相关，不写导致。"].join("\n\n");
     const doc = parseProse(source);
-    expect(doc.warnings.some((item) => item.code === "no-heading")).toBe(true);
+    expect(doc.warnings.some((item) => item.code === "no-heading")).toBe(false);
     expect(doc.blocks).toHaveLength(3);
     expect(doc.blocks.map((block) => block.text).join("")).toContain("第一段");
     expect(doc.blocks.map((block) => block.text).join("")).toContain("第三段");

@@ -261,13 +261,6 @@ export function parseProse(text: string): ParsedDocument {
     };
   });
 
-  if (blocks.length > 0 && !blocks.some((block) => block.kind === "heading")) {
-    warnings.push({
-      code: "no-heading",
-      message: "没有识别到标题。已按段落编号，目录为空。",
-    });
-  }
-
   const outline = blocks
     .filter((block) => block.kind === "heading")
     .map((block) => ({ id: block.id, level: block.level, text: block.text }));

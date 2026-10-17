@@ -799,7 +799,7 @@ export function DeskApp() {
         status: cancelled ? ("cancelled" as const) : rewriteResult.status,
         stageNote: cancelled
           ? "已停止。人话化结果已保留在对照里。"
-          : "已完成：先人话化／行文自然度，再受约束改写。已通过的修改已写入「改稿」。",
+          : "",
         view: (cancelled ? "compare" : "current") as "compare" | "current",
         modelError:
           rewriteResult.status === "failed"

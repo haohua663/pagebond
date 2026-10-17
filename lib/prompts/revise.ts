@@ -1,9 +1,12 @@
 import type { DocumentBlock, IntakeOptions } from "@/lib/document/types";
 import {
   documentBlock,
+  humanizePatternRules,
   languageRules,
   levelRule,
+  NO_ECHO_RULE,
   promptStamp,
+  rewriteStyleRules,
   structureRules,
   UNTRUSTED_PREFACE,
 } from "@/lib/prompts/shared";
@@ -82,6 +85,8 @@ export function rewriteMessages(
       "只返回你负责的这些段落，编号必须与输入一致，不能合并、拆开或调换。",
       "公式、直接引语、数字与单位、引用标记、参考文献和锁定段落必须原样保留。",
       "标题（heading 段落）和段首的结构标记（如 1.、1.2、（一）、第一章、- 、#）一律原样保留，不改字、不改编号、不改格式。",
+      rewriteStyleRules(options.language, text),
+      NO_ECHO_RULE,
       "做不到就原样返回该段。不要补写文献和数据。",
       repairNotes.length ? `上一次这些检查没有通过，只修这些问题：${repairNotes.join("；")}` : "",
       promptStamp(),
@@ -109,6 +114,8 @@ export function humanizeMessages(
       "只返回你负责的这些段落，编号必须与输入一致，不能合并、拆开或调换。",
       "公式、直接引语、数字与单位、引用标记、参考文献和锁定段落必须原样保留。",
       "标题（heading 段落）和段首的结构标记（如 1.、1.2、（一）、第一章、- 、#）一律原样保留，不改字、不改编号、不改格式。",
+      humanizePatternRules(options.language, text),
+      NO_ECHO_RULE,
       "已经清楚自然的句子不必为了改而改。做不到就原样返回该段。不要补写文献和数据。",
       "不要输出查重率或 AI 检测率，也不要声称能降低检测分数。",
       repairNotes.length ? `上一次这些检查没有通过，只修这些问题：${repairNotes.join("；")}` : "",

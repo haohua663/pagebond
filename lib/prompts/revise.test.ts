@@ -32,6 +32,78 @@ describe("prompts and credentials", () => {
     expect(messages.system).toMatch(/humanizer-zh/);
   });
 
+  it("lists concrete humanizer-zh AI-writing patterns for Chinese humanize drafts", () => {
+    const doc = parseProse("一段中文。");
+    const system = humanizeMessages(doc.blocks, { ...emptyOptions(), language: "zh" }, []).system;
+    for (const pattern of [
+      /值得注意的是/,
+      /综上所述/,
+      /总而言之/,
+      /此外/,
+      /意义拔高|拔高/,
+      /三段式/,
+      /不仅……而且/,
+      /不是……而是/,
+      /破折号/,
+      /研究表明/,
+      /专家认为/,
+      /宣传腔/,
+      /同义词/,
+      /句长/,
+      /空泛收尾|展望/,
+      /过度对冲/,
+      /客服腔|对话腔/,
+      /直接陈述/,
+    ]) {
+      expect(system).toMatch(pattern);
+    }
+    expect(system).not.toMatch(/blader\/humanizer/);
+  });
+
+  it("uses the English humanizer checklist for English drafts and keeps academic constraints", () => {
+    const doc = parseProse("An English paragraph about results.");
+    const system = humanizeMessages(doc.blocks, { ...emptyOptions(), language: "en" }, []).system;
+    expect(system).toMatch(/blader\/humanizer/);
+    expect(system).toMatch(/It is worth noting/);
+    expect(system).toMatch(/not only X but also Y/);
+    expect(system).toMatch(/pivotal/);
+    expect(system).toMatch(/Experts argue/);
+    expect(system).toMatch(/vary sentence length/i);
+    expect(system).toMatch(/association/);
+    expect(system).not.toMatch(/值得注意的是/);
+  });
+
+  it("keeps fidelity rules and forbids echoing block ids or kind tags in humanize and rewrite", () => {
+    const doc = parseProse("一段中文。");
+    const options = { ...emptyOptions(), language: "zh" as const };
+    for (const system of [
+      humanizeMessages(doc.blocks, options, []).system,
+      rewriteMessages(doc.blocks, options, []).system,
+    ]) {
+      expect(system).toMatch(/公式、直接引语、数字与单位、引用标记、参考文献/);
+      expect(system).toMatch(/标题（heading 段落）和段首的结构标记/);
+      expect(system).toMatch(/不要补写文献和数据/);
+      expect(system).toMatch(/\[p-002\]/);
+      expect(system).toMatch(/\(list\)/);
+    }
+  });
+
+  it("adds a lighter anti-AI-tell reminder to rewrite without the full checklist", () => {
+    const doc = parseProse("一段中文。");
+    const zh = rewriteMessages(doc.blocks, { ...emptyOptions(), language: "zh" }, []).system;
+    expect(zh).toMatch(/不要引入 AI 写作痕迹/);
+    expect(zh).toMatch(/值得注意的是/);
+    expect(zh).not.toMatch(/humanizer-zh 清单/);
+    const en = rewriteMessages(parseProse("English text.").blocks, { ...emptyOptions(), language: "en" }, []).system;
+    expect(en).toMatch(/Do not introduce AI-writing tells/);
+  });
+
+  it("keeps the humanize prompt compact enough to send per chunk", () => {
+    const doc = parseProse("一段中文。");
+    const system = humanizeMessages(doc.blocks, { ...emptyOptions(), language: "zh" }, []).system;
+    expect(system.length).toBeLessThan(2600);
+  });
+
   it("sends the documented model slug and prefers a session key over the server key", () => {
     const body = buildOpenRouterBody(
       {

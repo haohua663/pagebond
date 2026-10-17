@@ -10,8 +10,12 @@ export const UNTRUSTED_PREFACE = [
   "不要输出查重率、AI 检测率，也不要声称对照过知网、Turnitin 或 GPTZero。",
 ].join("");
 
+export function isChineseDraft(language: DraftLanguage, text: string): boolean {
+  return language === "zh" || (language === "unset" && /[\u3400-\u9fff]/.test(text));
+}
+
 export function languageRules(language: DraftLanguage, text: string): string {
-  const chinese = language === "zh" || (language === "unset" && /[\u3400-\u9fff]/.test(text));
+  const chinese = isChineseDraft(language, text);
   if (!chinese) {
     return [
       "英文稿使用学术英语约束，不要套用中文 humanizer 规则。",
@@ -29,6 +33,57 @@ export function languageRules(language: DraftLanguage, text: string): string {
     "不把相关写成导致，不把未显著写成显著，不把「从 10% 上升到 15%」写成「增长 15%」。",
   ].join("");
 }
+
+/**
+ * AI-writing tells distilled from op7418/Humanizer-zh SKILL.md (2026-09-23 revision, 31 patterns
+ * in groups A–F). Sent per chunk, so kept to one line per group of patterns.
+ */
+export const HUMANIZER_ZH_PATTERNS = [
+  "逐条检查下列 AI 写作痕迹（humanizer-zh 清单）。它们是检查线索，不是词语黑名单：命中且空泛、重复时才改，承担真实顺序、转折、因果的连接词保留。",
+  "1. 填充套话：值得注意的是、值得一提的是、需要指出的是、具体而言、此外、与此同时、总而言之、综上所述、总的来说。没有承接作用就删掉，直接说事。",
+  "2. 宏大铺垫与意义拔高：「随着……的飞速发展」式开头，「具有重要的理论意义和实践价值」「为……贡献力量」「标志着」「彰显了」「赋能」「时代命题」「有力回应」。删掉没有独立信息的拔高，只留原文给出的具体内容。",
+  "3. 假对比与否定式排比：「不仅……而且/更」「不是……而是」「这不仅仅是……更是……」。只为抬高语气时改成直接陈述；两半都有信息或在纠正真实误解时保留。",
+  "4. 强凑三段式与四字词堆叠：「科学性、准确性与可靠性」「全面、深入、立体」「理论、方法与实践层面」。只留有独立含义的项，空泛的合并或删去，不补新项。",
+  "5. 模糊归因：没有引用标记的「研究表明」「有学者指出」「专家认为」，保留归因对象与不确定程度，不要改成确定事实，不要把「专家」换成「有人」，也不要补造出处。",
+  "6. 宣传腔与高频词：至关重要、深入探讨、全新的可能、亟需、不可或缺、日益受到广泛关注。换成平实、准确的说法（统计意义上的「显著」照常保留）。",
+  "7. 空泛收尾与展望：「是每一位……都需要深思的问题」「必将成为未来研究的重要方向」「在理论、方法与实践层面深入探讨」「让我们拭目以待」。纯套话就删；其中有作者真实的判断或问题时，压成一句平实的话，不要整句删掉，也不要补写原文没有的具体方向。",
+  "8. 过度对冲：「也许可能」「在一定程度上或许」，同一层不确定只写一次；样本范围、尚未验证等真实限定必须保留。",
+  "9. 标点与排版：不用破折号、冒号、加粗或引号制造强调和悬念。",
+  "10. 节奏与句式：句长不要整齐划一，长短句交替；相邻句不要同一开头；「对……进行+动词」换成直接动词；层叠的「的」拆开；不要逐句换同义词。",
+  "11. 不要客服腔、对话腔，不要谈论修改过程或「本段」。",
+  "写法：直接陈述，主语明确（本研究、研究者、作者），用原文已有的具体信息支撑判断；保留作者立场和学术正式度，不口语化，不拆成提纲。",
+].join("\n");
+
+/** English tells from blader/humanizer SKILL.md (groups A–F), trimmed for academic prose. */
+export const HUMANIZER_EN_PATTERNS = [
+  "For English, check these AI-writing tells (blader/humanizer list); edit only where they add nothing:",
+  "1. Filler and signposting: It is worth noting that, Notably, Importantly, Additionally, Moreover, Furthermore, It is important to acknowledge, Ultimately, In conclusion. Cut them and state the point.",
+  "2. Not X but Y / not only X but also Y used only for weight. State the claim directly.",
+  "3. Inflated significance and AI vocabulary: pivotal, crucial, key (adj.), underscore, highlight (verb), delve, intricate, interplay, landscape, tapestry, testament, paradigm shift, pave the way, shed light on, foster, cultivate, enhance, showcase, robust (figurative). Use plain words.",
+  "4. Shallow -ing riders (\", highlighting/ensuring/fostering ...\") and forced triads: keep only items that carry distinct meaning; never add items.",
+  "5. Borrowed authority without a citation (Experts argue, Studies show): keep who is credited and the uncertainty (do not swap experts for \"some\"); do not invent sources or turn it into fact.",
+  "6. Empty closers and future-outlook endings, one-line restatements: cut pure filler; if the closer carries a real judgment, keep it as one plain sentence; never add specifics the source lacks.",
+  "7. Em/en dashes as connectors, decorative bold or colons: rewrite with commas, periods, or parentheses.",
+  "8. Stacked hedges (could potentially, may possibly): one hedge per uncertainty; keep real hedges and limitations.",
+  "9. Rhythm: vary sentence length, avoid repeated sentence openings and synonym cycling.",
+  "Write plainly in formal academic register: concrete subject, direct verb, the author's stance intact.",
+].join("\n");
+
+/** Full checklist for the humanize pass. */
+export function humanizePatternRules(language: DraftLanguage, text: string): string {
+  return isChineseDraft(language, text) ? HUMANIZER_ZH_PATTERNS : HUMANIZER_EN_PATTERNS;
+}
+
+/** Lighter reminder for rewrite so a rewrite does not introduce AI tells. */
+export function rewriteStyleRules(language: DraftLanguage, text: string): string {
+  return isChineseDraft(language, text)
+    ? "改写时不要引入 AI 写作痕迹：「值得注意的是」「此外」「综上所述」类填充词，「不仅……而且」「不是……而是」式假对比，凑三排比和四字词堆叠，「具有重要意义」「赋能」类拔高与宣传腔，无出处的「研究表明」，空泛的结尾展望，破折号强调。句长要有长短变化，直接陈述。"
+    : "Do not introduce AI-writing tells: filler (It is worth noting, Moreover, Ultimately), not-only-but-also contrasts, forced triads, inflated words (pivotal, crucial, underscore, delve, landscape, pave the way), uncited 'studies show', empty future-outlook closers, em dashes. Vary sentence length; state claims directly.";
+}
+
+/** Model replies sometimes copy the payload's block header into the text. */
+export const NO_ECHO_RULE =
+  "每段 text 只写正文，不要带段落编号或类型标签（如 [p-002]、(list)、(paragraph)、locked），也不要加说明或引号。";
 
 export function structureRules(articleType: ArticleType): string {
   if (articleType === "review") return "这是文献综述。不要套实验结构，不要编写已完成的方法、结果或伦理声明。";

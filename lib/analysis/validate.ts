@@ -249,7 +249,7 @@ export function checkRewriteWithTerms(
 }
 
 /** Humanize may trim filler tails, but a paragraph below this share of the source length is retried once. */
-export const HUMANIZE_MIN_LENGTH_RATIO = 0.65;
+export const HUMANIZE_MIN_LENGTH_RATIO = 0.6;
 /** Paragraphs shorter than this (non-space chars) are too small for a meaningful ratio. */
 const SHRINK_MIN_SOURCE_CHARS = 40;
 
@@ -326,7 +326,9 @@ export function humanizeSoftChecks(
     if (!shrunk && !lostTerms.length) continue;
     blocks.push({ id: check.id, ratio, shrunk, lostTerms });
     if (shrunk) {
-      notes.push(`${check.id} 人话化删减过多（只剩原文约 ${Math.round(ratio * 100)}%），请保留信息只改表达，作者的判断和结论句不要删`);
+      notes.push(
+        `${check.id} 人话化删减过多（只剩原文约 ${Math.round(ratio * 100)}%），请保留信息只改表达：把删掉的事实、术语、作者判断和限定补回来；清单第 2、7 条的拔高尾巴和空泛总结仍然删掉，不要恢复`,
+      );
     }
     if (lostTerms.length) notes.push(`${check.id} 丢了专业术语：${lostTerms.join("、")}，请原样保留`);
   }

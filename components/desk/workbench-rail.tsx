@@ -11,6 +11,7 @@ import {
   ArrowLeft,
   Home,
   Lightbulb,
+  CreditCard,
   LogIn,
   LogOut,
   Settings,
@@ -93,8 +94,18 @@ function AccountMenu({
           <p className="px-2 pt-1 text-xs text-amber-200/90">{DEMO_LABEL}</p>
           <p className="truncate px-2 font-medium">{session.name}</p>
           <p className="mb-2 truncate px-2 text-xs text-zinc-400">{session.email}</p>
+          <Link
+            href="/pricing"
+            role="menuitem"
+            data-testid="account-pricing"
+            className="mb-1 flex items-center gap-2 rounded-lg px-2 py-2 text-paper/90 hover:bg-white/10"
+            onClick={onClose}
+          >
+            <CreditCard size={16} aria-hidden />
+            会员 / 定价
+          </Link>
           <p className="mb-2 px-2 text-[11px] leading-snug text-zinc-500">
-            定价与订阅稍后接入；设置仍用齿轮图标。
+            支付尚未开通；设置仍用齿轮图标。
           </p>
           <button
             type="button"
@@ -133,8 +144,18 @@ function AccountMenu({
             <UserPlus size={16} aria-hidden />
             注册
           </Link>
+          <Link
+            href="/pricing"
+            role="menuitem"
+            data-testid="account-pricing"
+            className="flex items-center gap-2 rounded-lg px-2 py-2 text-paper/90 hover:bg-white/10"
+            onClick={onClose}
+          >
+            <CreditCard size={16} aria-hidden />
+            会员 / 定价
+          </Link>
           <p className="mt-1 px-2 pb-1 text-[11px] leading-snug text-zinc-500">
-            演示占位 · 定价页稍后
+            演示占位 · 支付未开通
           </p>
         </>
       )}

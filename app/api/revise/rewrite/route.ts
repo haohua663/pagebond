@@ -1,3 +1,4 @@
+import { stripEmptyOutlook } from "@/lib/analysis/empty-outlook";
 import { alignParagraphs, checkRewriteWithTerms } from "@/lib/analysis/validate";
 import { failWithGate, jsonWithGate, openModelGate } from "@/lib/api/guard";
 import { asBlocks, asOptions, tooLong, tooLongMessage } from "@/lib/api/respond";
@@ -47,7 +48,8 @@ export async function POST(request: Request) {
       repairNotes = ["返回的结构无法解析"];
       continue;
     }
-    const aligned = alignParagraphs(blocks, parsed.data.paragraphs);
+    // Drop empty outlook sentences (「后续研究仍需……讨论」); rewrite only drops ones it introduced.
+    const aligned = stripEmptyOutlook(blocks, alignParagraphs(blocks, parsed.data.paragraphs), options.lockedTerms, "rewrite");
     lastCheck = checkRewriteWithTerms(blocks, aligned, options.lockedTerms);
     if (lastCheck.integrity === "passed") break;
     repairNotes = lastCheck.issues;

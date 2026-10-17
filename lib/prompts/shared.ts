@@ -50,7 +50,7 @@ export const HUMANIZER_ZH_PATTERNS = [
   "4. 强凑三段式与四字词堆叠：「科学性、准确性与可靠性」「全面、深入、立体」「理论、方法与实践层面」。只留有独立含义的项，空泛的合并或删去，不补新项。",
   "5. 模糊归因：没有引用标记的「研究表明」「研究证实」改成带保留的「有研究显示」「有研究认为」，不要原样照抄；「有学者指出」「专家认为」保留归因对象与不确定程度，不要改成确定事实，不要把「专家」换成「有人」，也不要补造出处。",
   "6. 宣传腔与高频词：至关重要、深入探讨、全新的可能、亟需、不可或缺、日益受到广泛关注。换成平实、准确的说法（统计意义上的「显著」照常保留）。",
-  "7. 空泛收尾与展望：「可见，」「因此，」「总之，」后面只是复述前文的总结句；「是每一位……都需要深思的问题」「必将成为未来研究的重要方向」「未来研究仍需在理论、方法与实践层面继续讨论/深入探讨」「让我们拭目以待」。这些是可删的套话；但其中有作者自己的判断、立场或问题（如「如何在……的同时守住……」）时必须保留，压成一句平实的话，不要补写原文没有的具体方向。",
+  "7. 空泛收尾与展望（必须删除，不是可选）：没有具体对象的展望句和平衡总结一律整句删掉，例如「后续/未来研究仍需……讨论/探讨/深入」「有待进一步探讨/研究」「在理论、方法与实践层面……」「仍是值得讨论/关注的问题」「也将成为未来研究的重要方向」「既带来机遇，也伴随挑战」，以及只复述前文的「可见，」「因此，」「总之，」总结句。点名具体对象的局限和后续工作要保留（如「样本仅限华东地区，推广性有待验证」「将扩大到西部高校」）。作者自己的判断或问题（如「如何在……的同时守住……」）必须保留，压成一句平实的话，用平实的谓语收住（如「是教育工作者要回答的问题」），不要再接「仍是值得讨论的问题」「也是后续研究要面对的」这类尾巴；不要补写原文没有的具体方向。",
   "8. 过度对冲：「也许可能」「在一定程度上或许」，同一层不确定只写一次；样本范围、尚未验证等真实限定必须保留。",
   "9. 标点与排版：不用破折号、冒号、加粗或引号制造强调和悬念。",
   "10. 节奏与句式：句长不要整齐划一，长短句交替；相邻句不要同一开头；「对……进行+动词」换成直接动词；层叠的「的」拆开；不要逐句换同义词。",
@@ -70,7 +70,7 @@ export const HUMANIZER_EN_PATTERNS = [
   "3. Inflated significance and AI vocabulary: pivotal, crucial, key (adj.), underscore, highlight (verb), delve, intricate, interplay, landscape, tapestry, testament, paradigm shift, pave the way, shed light on, foster, cultivate, enhance, showcase, robust (figurative). Use plain words.",
   "4. Shallow -ing riders (\", highlighting/ensuring/fostering ...\") and forced triads: keep only items that carry distinct meaning; never add items.",
   "5. Borrowed authority without a citation (Experts argue, Studies show): keep who is credited and the uncertainty (do not swap experts for \"some\"); do not invent sources or turn it into fact.",
-  "6. Empty closers and future-outlook tails are filler: \"provide a basis for further research\", \"pave the way for future work\", \"open new avenues\", \"have important implications\", \"These results suggest directions for future research\", \"Thus/Overall,\" summaries that only restate. Cut them; a real judgment, stance or question in the closer must stay as one plain sentence; never add specifics the source lacks.",
+  "6. Empty closers and future-outlook sentences MUST be deleted when they name no concrete object: \"Future research should further explore...\", \"... warrants further investigation\", \"More research is needed\", \"provide a basis for further research\", \"pave the way for future work\", \"open new avenues\", \"have important implications\", \"Thus/Overall,\" summaries that only restate, \"offers both opportunities and challenges\". Keep limitations and future work that name a specific object (\"limited to 86 undergraduates\", \"test the effect in secondary schools\"). A real judgment, stance or question must stay as one plain sentence; never add specifics the source lacks.",
   "7. Em/en dashes as connectors, decorative bold or colons: rewrite with commas, periods, or parentheses.",
   "8. Stacked hedges (could potentially, may possibly): one hedge per uncertainty; keep real hedges and limitations.",
   "9. Rhythm: vary sentence length, avoid repeated sentence openings and synonym cycling.",
@@ -85,8 +85,8 @@ export function humanizePatternRules(language: DraftLanguage, text: string): str
 /** Lighter reminder for rewrite so a rewrite does not introduce AI tells. */
 export function rewriteStyleRules(language: DraftLanguage, text: string): string {
   return isChineseDraft(language, text)
-    ? "改写时不要引入 AI 写作痕迹：「值得注意的是」「此外」「综上所述」类填充词，「不仅……而且」「不是……而是」式假对比，凑三排比和四字词堆叠，「具有重要意义」「赋能」类拔高与宣传腔，「以推进……转型」「为……提供参考」类句尾拔高，无出处的「研究表明」，空泛的结尾展望，破折号强调。句长要有长短变化，直接陈述。专业术语、方法名和概念名原样保留。"
-    : "Do not introduce AI-writing tells: filler (It is worth noting, Moreover, Ultimately), not-only-but-also contrasts, forced triads, inflated words (pivotal, crucial, underscore, delve, landscape, pave the way), uncited 'studies show', empty future-outlook closers, em dashes. Vary sentence length; state claims directly. Keep technical terms and method names verbatim.";
+    ? "改写时不要引入 AI 写作痕迹：「值得注意的是」「此外」「综上所述」类填充词，「不仅……而且」「不是……而是」式假对比，凑三排比和四字词堆叠，「具有重要意义」「赋能」类拔高与宣传腔，「以推进……转型」「为……提供参考」类句尾拔高，「后续研究仍需……讨论」「仍是值得讨论的问题」「既带来机遇也伴随挑战」类空泛展望，无出处的「研究表明」，空泛的结尾展望，破折号强调。句长要有长短变化，直接陈述。专业术语、方法名和概念名原样保留。"
+    : "Do not introduce AI-writing tells: filler (It is worth noting, Moreover, Ultimately), not-only-but-also contrasts, forced triads, inflated words (pivotal, crucial, underscore, delve, landscape, pave the way), uncited 'studies show', empty future-outlook closers, em dashes, empty future-research sentences (Future research should further explore...). Vary sentence length; state claims directly. Keep technical terms and method names verbatim.";
 }
 
 /** Model replies sometimes copy the payload's block header into the text. */

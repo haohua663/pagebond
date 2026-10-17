@@ -115,7 +115,7 @@ describe("prompts and credentials", () => {
     for (const pattern of [
       /以推进\/助力\/赋能\/服务于……转型\/发展\/建设/,
       /为……贡献力量\/提供参考\/奠定基础/,
-      /理论、方法与实践层面继续讨论/,
+      /在理论、方法与实践层面/,
       /有一定参考价值/,
       /「可见，」「因此，」/,
       /没有引用标记的「研究表明」.*改成带保留的「有研究显示」/,
@@ -128,6 +128,21 @@ describe("prompts and credentials", () => {
     expect(en).toMatch(/provide a basis for further research/);
     expect(en).toMatch(/pave the way/);
     expect(en).toMatch(/filler tails .* is fine/);
+  });
+
+  it("marks empty outlook sentences as must-delete while keeping concrete limitations", () => {
+    const zh = humanizeMessages(parseProse("一段中文。").blocks, { ...emptyOptions(), language: "zh" }, []).system;
+    expect(zh).toMatch(/必须删除，不是可选/);
+    expect(zh).toMatch(/后续\/未来研究仍需……讨论\/探讨\/深入/);
+    expect(zh).toMatch(/仍是值得讨论\/关注的问题/);
+    expect(zh).toMatch(/既带来机遇，也伴随挑战/);
+    expect(zh).toMatch(/将扩大到西部高校/);
+    expect(zh).toMatch(/是教育工作者要回答的问题/);
+    const en = humanizeMessages(parseProse("English text.").blocks, { ...emptyOptions(), language: "en" }, []).system;
+    expect(en).toMatch(/MUST be deleted/);
+    expect(en).toMatch(/warrants further investigation/);
+    const rw = rewriteMessages(parseProse("一段中文。").blocks, { ...emptyOptions(), language: "zh" }, []).system;
+    expect(rw).toMatch(/后续研究仍需……讨论/);
   });
 
   it("keeps the humanize prompt compact enough to send per chunk", () => {
